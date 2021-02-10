@@ -1,0 +1,32 @@
+{
+  "ConnectionStrings": {
+    "ApiConnection": "Server=[YOUR_SERVER];Database=[YOUR_DATABASE];User Id=[YOUR_USERNAME];Password=[YOUR_PASWORD];",
+    "Azure": "DefaultEndpointsProtocol=https;AccountName=[YOUR_ACCOUNT_NAME];AccountKey=[YOUR_ACCOUNT_KEY];BlobEndpoint=[ROOT_PATH];"
+  },
+
+  "BearerTokens": {
+    "Key": "GUID-A54a-SS15-SwEr-opo4-56YH",
+    "Issuer": "http://apicore.com",
+    "Audience": "Any",
+    "AccessTokenExpirationHours": 7,
+    "RefreshTokenExpirationHours": 60
+  },
+
+  "Blobs": {
+    "ImagesRootPath": "[ROOT_PATH]/[CONTAINER_NAME]",
+    "ImagesContainer": "[CONTAINER_NAME]"
+  },
+  "SendGrid": {
+    "SendGridKey": "[SENDGRID_KEY]",
+    "SendGridUser": "[SENDGRID_USER]",
+    "UseSandbox": "true"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+  "AllowedHosts": "*"
+}

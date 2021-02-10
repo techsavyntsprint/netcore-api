@@ -1,0 +1,171 @@
+[
+  { //BadRequests
+    "Key": "400",
+    "LocalizedValue": {
+      "en-US": "Request with malformed syntax.",
+      "es-ES": "Petición mal formada."
+    }
+  },
+  {
+    "Key": "400001",
+    "LocalizedValue": {
+      "en-US": "The email is already in use.",
+      "es-ES": "El email ya está siendo usado."
+    }
+  },
+  {
+    "Key": "400002",
+    "LocalizedValue": {
+      "en-US": "The password must have at least 6 chars, including 1 uppercase letter and 1 special character.",
+      "es-ES": "La contraseña requiere 6 caracters, incluyendo al menos 1 letra en mayúsculas y 1 caracter especial."
+    }
+  },
+  {
+    "Key": "400003",
+    "LocalizedValue": {
+      "en-US": "The passwords must match.",
+      "es-ES": "Las contraseñas deben coincidir."
+    }
+  },
+  {
+    "Key": "400004",
+    "LocalizedValue": {
+      "en-US": "The old password is incorrect.",
+      "es-ES": "La contraseña anterior es incorrecta."
+    }
+  },
+  {
+    "Key": "400005",
+    "LocalizedValue": {
+      "en-US": "The file is null or empty.",
+      "es-ES": "El archivo es nulo o está vacío."
+    }
+  },
+  {
+    "Key": "400006",
+    "LocalizedValue": {
+      "en-US": "The file size is invalid",
+      "es-ES": "El tamaño del archivo no es válido"
+    }
+  },
+  {
+    "Key": "400007",
+    "LocalizedValue": {
+      "en-US": "The type file is invalid",
+      "es-ES": "El tipo del archivo no es válido"
+    }
+  },
+  {
+    "Key": "400008",
+    "LocalizedValue": {
+      "en-US": "This email could not be sent",
+      "es-ES": "Este email no ha podido ser enviado"
+    }
+  },
+
+  {
+    "Key": "400009",
+    "LocalizedValue": {
+      "en-US": "Invalid token",
+      "es-ES": "Token no válido"
+    }
+  },
+  {
+    "Key": "400010",
+    "LocalizedValue": {
+      "en-US": "Invalid refresh token",
+      "es-ES": "Token de actualización no válido"
+    }
+  },
+  //Unauthorized
+  {
+    "Key": "401",
+    "LocalizedValue": {
+      "en-US": "Unauthorized access. Requires user authentication.",
+      "es-ES": "Acceso no autorizado. Requiere autenticación."
+    }
+  },
+  {
+    "Key": "401001",
+    "LocalizedValue": {
+      "en-US": "You don't have permissions to access the resource.",
+      "es-ES": "Usted no tiene permisos para acceder al recurso."
+    }
+  },
+  //Forbidden
+  {
+    "Key": "403",
+    "LocalizedValue": {
+      "en-US": "Forbidden request.",
+      "es-ES": "Petición prohibida."
+    }
+  },
+  {
+    "Key": "403001",
+    "LocalizedValue": {
+      "en-US": "Your access is blocked because your account is inactive.",
+      "es-ES": "Su acceso ha sido bloqueado porque su cuenta no ha sido activada."
+    }
+  },
+  {
+    "Key": "403002",
+    "LocalizedValue": {
+      "en-US": "You cannot disable your account.",
+      "es-ES": "No puede deshabilitar su cuenta."
+    }
+  },
+  //NotFound
+  {
+    "Key": "404",
+    "LocalizedValue": {
+      "en-US": "Resource not found.",
+      "es-ES": "Recurso no encontrado."
+    }
+  },
+  {
+    "Key": "404001",
+    "LocalizedValue": {
+      "en-US": "User not found.",
+      "es-ES": "Usuario no encontrado."
+    }
+  },
+  {
+    "Key": "404002",
+    "LocalizedValue": {
+      "en-US": "Setting not found.",
+      "es-ES": "Configuración no encontrada."
+    }
+  },
+  {
+    "Key": "404003",
+    "LocalizedValue": {
+      "en-US": "Refresh-Token not found.",
+      "es-ES": "Actualización de Token no encontrado."
+    }
+  },
+  //RequestTimeout
+  {
+    "Key": "408",
+    "LocalizedValue": {
+      "en-US": "Request timeout.",
+      "es-ES": "Tiempo de espera agotado."
+    }
+  },
+  //UnsupportedMediaType
+  {
+    "Key": "415",
+    "LocalizedValue": {
+      "en-US": "Unsupported media type.",
+      "es-ES": "Tipo no soportado."
+    }
+  },
+  //InternalServerError
+  {
+    "Key": "500",
+    "LocalizedValue": {
+      "en-US": "Internal server error.",
+      "es-ES": "Error interno del servidor."
+    }
+  }
+
+]

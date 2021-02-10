@@ -348,3 +348,10 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+# As security best practice, remove the env relative settings from the repo
+/AlboteAPI/AlboteAPI/AlBoteAPI.xml
+/AlboteAPI/Albote.Common/Albote.Common.xml
+/AlboteAPI/AlboteAPI/appsettings.json
+/AlboteAPI/Albote.Core/appsettings.json
+/AlboteAPI/Albote.Core/Albote.Core.xml
