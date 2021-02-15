@@ -355,3 +355,6 @@ MigrationBackup/
 /AlboteAPI/AlboteAPI/appsettings.json
 /AlboteAPI/Albote.Core/appsettings.json
 /AlboteAPI/Albote.Core/Albote.Core.xml
+
+# JetBrains Rider project files
+APICore/.idea/
