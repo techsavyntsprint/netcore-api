@@ -139,10 +139,17 @@ namespace APICore.Services.Impls
 
         public async Task SignUpAsync(SignUpRequest suRequest)
         {
-            var emailExists = await _uow.UserRepository.FindAllAsync(u => u.Email == suRequest.Email);
-            if (emailExists.Count > 0)
+            if(suRequest.Email == "")
             {
-                throw new EmailInUseBadRequestException(_localizer);
+                throw new EmptyEmailBadRequestExceptioncs(_localizer);
+            }
+            var emailExists = await _uow.UserRepository.FindAllAsync(u => u.Email == suRequest.Email);
+            if(emailExists != null)
+            {
+                if (emailExists.Count > 0)
+                {
+                    throw new EmailInUseBadRequestException(_localizer);
+                }
             }
 
             if (string.IsNullOrWhiteSpace(suRequest.Password) ||
