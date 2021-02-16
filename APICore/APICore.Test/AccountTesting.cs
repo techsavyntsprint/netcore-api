@@ -11,14 +11,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
 using Wangkanai.Detection.Services;
 using Microsoft.WindowsAzure.Storage.Blob;
-using System.Net;
 using Microsoft.WindowsAzure.Storage;
 using System.Collections.Generic;
 using APICore.Data.Entities;
-using APICore.Data.Repository;
-using APICore.Data;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APICore.Test
