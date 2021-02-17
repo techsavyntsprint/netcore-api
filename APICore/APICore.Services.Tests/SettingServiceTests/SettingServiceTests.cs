@@ -13,23 +13,25 @@ namespace APICore.Services.Tests.SettingServiceTests
 {
     public abstract class SettingServiceTests
     {
+        protected DbContextOptions<CoreDbContext> ContextOptions { get; }
+
         private readonly IStringLocalizer<IAccountService> _localizerMock;
-        private readonly DbContextOptions<CoreDbContext> _dbContextOptions;
 
         protected SettingServiceTests(DbContextOptions<CoreDbContext> contextOptions)
         {
-            _dbContextOptions = contextOptions ?? throw new ArgumentNullException(nameof(contextOptions));
+            ContextOptions = contextOptions ?? throw new ArgumentNullException(nameof(contextOptions));
 
             _localizerMock = new Mock<IStringLocalizer<IAccountService>>().Object;
 
-            SeedAsync().Wait();
+            SeedAsync()
+               .Wait();
         }
 
         #region Seeding
 
         private async Task SeedAsync()
         {
-            await using var context = new CoreDbContext(_dbContextOptions);
+            await using var context = new CoreDbContext(ContextOptions);
             await context.Database.EnsureDeletedAsync();
             await context.Database.EnsureCreatedAsync();
 
@@ -46,7 +48,7 @@ namespace APICore.Services.Tests.SettingServiceTests
             // Arrange
             const string notExistingKey = "TestKey";
 
-            await using var context = new CoreDbContext(_dbContextOptions);
+            await using var context = new CoreDbContext(ContextOptions);
             var service = new SettingService(new UnitOfWork(context), _localizerMock);
 
             // Act
