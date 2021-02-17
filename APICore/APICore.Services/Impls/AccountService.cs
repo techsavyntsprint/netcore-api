@@ -141,7 +141,7 @@ namespace APICore.Services.Impls
         {
             if(suRequest.Email == "")
             {
-                throw new EmptyEmailBadRequestExceptioncs(_localizer);
+                throw new EmptyEmailBadRequestException(_localizer);
             }
             var emailExists = await _uow.UserRepository.FindAllAsync(u => u.Email == suRequest.Email);
             if(emailExists != null)

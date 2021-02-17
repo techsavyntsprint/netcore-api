@@ -2,9 +2,9 @@
 
 namespace APICore.Services.Exceptions
 {
-    public class EmptyEmailBadRequestExceptioncs : BaseBadRequestException
+    public class EmptyEmailBadRequestException : BaseBadRequestException
     {
-        public EmptyEmailBadRequestExceptioncs(IStringLocalizer<object> localizer) : base()
+        public EmptyEmailBadRequestException(IStringLocalizer<object> localizer) : base()
         {
             CustomCode = 400011;
             CustomMessage = localizer.GetString(CustomCode.ToString());
