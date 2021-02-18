@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using APICore.Common.DTO.Request;
 using APICore.Data;
 using APICore.Data.Entities;
 using APICore.Data.UoW;
@@ -87,6 +88,65 @@ namespace APICore.Services.Tests.SettingServiceTests
 
             // Assert
             Assert.Equal("1", value);
+        }
+
+        #endregion
+
+        #region SetSetting with a new key creates a new entry
+
+        [Fact]
+        public async Task SetSetting_NewKey_CreatesEntry()
+        {
+            // Arrange
+            const string key = "TestKeyNew";
+            const string value = "TestValueNew";
+
+            var request = new SettingRequest
+            {
+                Key = key,
+                Value = value
+            };
+
+            await using var context = new CoreDbContext(ContextOptions);
+            var service = new SettingService(new UnitOfWork(context), _localizerMock);
+
+            // Act
+            await service.SetSettingAsync(request);
+
+            // Assert
+            var created = await context.Setting.AnyAsync(setting => setting.Key == key && setting.Value == value);
+            Assert.True(created);
+        }
+
+        #endregion
+        
+        #region SetSetting with existing key updates the entry
+
+        [Fact]
+        public async Task SetSetting_ExistingKey_UpdatesEntry()
+        {
+            // Arrange
+            const string existingKey = "TestKey2";
+            const string existingValue = "2";
+            const string newValue = "TestValueUpdate";
+
+            await using var context = new CoreDbContext(ContextOptions);
+            var service = new SettingService(new UnitOfWork(context), _localizerMock);
+            
+            var request = new SettingRequest
+            {
+                Key = existingKey,
+                Value = newValue
+            };
+
+            // Act
+            await service.SetSettingAsync(request);
+
+            // Assert
+            var currentEntry = await context.Setting.FirstAsync(setting => setting.Key == existingKey);
+
+            Assert.Equal(newValue, currentEntry.Value);
+            Assert.NotEqual(existingValue, currentEntry.Value);
         }
 
         #endregion
