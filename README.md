@@ -1,6 +1,7 @@
 # NET Core 5 API
 
 [![Continuous Integration](https://github.com/techsavyntsprint/netcore-api/workflows/CI/badge.svg)](https://github.com/techsavyntsprint/netcore-api/actions)
+
 The solution includes the API to be reused. 
 
 ## Build and Test
