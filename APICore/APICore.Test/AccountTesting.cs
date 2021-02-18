@@ -14,6 +14,11 @@ using System.Collections.Generic;
 using APICore.Data.Entities;
 using Microsoft.AspNetCore.Mvc;
 using APICore.Services.Exceptions;
+using APICore.Data.Repository;
+using APICore.Data;
+using Microsoft.EntityFrameworkCore;
+using Wangkanai.Detection.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace APICore.Test
 {
@@ -32,8 +37,8 @@ namespace APICore.Test
             // ARRANGE
             var fakeUserRequest = new SignUpRequest
             {
-                Email = "pepe@itguy.com",
-                FullName = "Pepe Perez",
+                Email = "Carlos@itguy.com",
+                FullName = "Carlos Perez",
                 Gender = 0,
                 Phone = "+53 12345678",
                 Birthday = DateTime.Now,
@@ -41,9 +46,7 @@ namespace APICore.Test
                 ConfirmationPassword = "S3cretP@$$"
             };
 
-            var users = new List<User>();
-            uowMock.Setup(repo => repo.UserRepository.FindAllAsync(x => x.Email == fakeUserRequest.Email)).ReturnsAsync(users);
-            var accountService = new AccountService(new Mock<IConfiguration>().Object, uowMock.Object, new Mock<IStringLocalizer<IAccountService>>().Object, new Mock<IDetectionService>().Object, Setup.GetBlobHardCodedSettings());
+            var accountService = new AccountService(new Mock<IConfiguration>().Object, Setup.MockDatabase().Object, new Mock<IStringLocalizer<IAccountService>>().Object, new Mock<IDetectionService>().Object, Setup.GetBlobHardCodedSettings());
             var accountController = new AccountController(accountService, new Mock<AutoMapper.IMapper>().Object, new Mock<IEmailService>().Object, new Mock<IWebHostEnvironment>().Object);
 
             // ACT
@@ -68,9 +71,7 @@ namespace APICore.Test
                 ConfirmationPassword = "S3cretP@$$"
             };
 
-            var users = new List<User>();
-            uowMock.Setup(repo => repo.UserRepository.FindAllAsync(x => x.Email == fakeUserRequest.Email)).ReturnsAsync(users);
-            var accountService = new AccountService(new Mock<IConfiguration>().Object, uowMock.Object, new Mock<IStringLocalizer<IAccountService>>().Object, new Mock<IDetectionService>().Object, Setup.GetBlobHardCodedSettings());
+            var accountService = new AccountService(new Mock<IConfiguration>().Object, Setup.MockDatabase().Object, new Mock<IStringLocalizer<IAccountService>>().Object, new Mock<IDetectionService>().Object, Setup.GetBlobHardCodedSettings());
             var accountController = new AccountController(accountService, new Mock<AutoMapper.IMapper>().Object, new Mock<IEmailService>().Object, new Mock<IWebHostEnvironment>().Object);
 
             // ACT
@@ -86,14 +87,11 @@ namespace APICore.Test
             // ARRANGE
             var fakeUserRequest = new SignUpRequest
             {
-                Email = "carlos22@itguy.com"
+                Email = "pepe@itguy.com"
             };
 
-            var users = Setup.FakeUsersData();
-            uowMock.Setup(repo => repo.UserRepository.FindAllAsync(x => x.Email == fakeUserRequest.Email)).ReturnsAsync(users);
-            var accountService = new AccountService(new Mock<IConfiguration>().Object, uowMock.Object, new Mock<IStringLocalizer<IAccountService>>().Object, new Mock<IDetectionService>().Object, Setup.GetBlobHardCodedSettings());
+            var accountService = new AccountService(new Mock<IConfiguration>().Object, Setup.MockDatabase().Object, new Mock<IStringLocalizer<IAccountService>>().Object, new Mock<IDetectionService>().Object, Setup.GetBlobHardCodedSettings());
             var accountController = new AccountController(accountService, new Mock<AutoMapper.IMapper>().Object, new Mock<IEmailService>().Object, new Mock<IWebHostEnvironment>().Object);
-
 
             // ACT
             var taskResult = (BaseBadRequestException)accountController.Register(fakeUserRequest).Exception.InnerException;
@@ -108,7 +106,7 @@ namespace APICore.Test
             // ARRANGE
             var fakeUserRequest = new SignUpRequest
             {
-                Email = "pepe@itguy.com",
+                Email = "pepe2@itguy.com",
                 FullName = "Pepe Perez",
                 Gender = 0,
                 Phone = "+53 12345678",
@@ -117,9 +115,7 @@ namespace APICore.Test
                 ConfirmationPassword = "S3cretP@$$"
             };
 
-            var users = new List<User>();
-            uowMock.Setup(repo => repo.UserRepository.FindAllAsync(x => x.Email == fakeUserRequest.Email)).ReturnsAsync(users);
-            var accountService = new AccountService(new Mock<IConfiguration>().Object, uowMock.Object, new Mock<IStringLocalizer<IAccountService>>().Object, new Mock<IDetectionService>().Object, Setup.GetBlobHardCodedSettings());
+            var accountService = new AccountService(new Mock<IConfiguration>().Object, Setup.MockDatabase().Object, new Mock<IStringLocalizer<IAccountService>>().Object, new Mock<IDetectionService>().Object, Setup.GetBlobHardCodedSettings());
             var accountController = new AccountController(accountService, new Mock<AutoMapper.IMapper>().Object, new Mock<IEmailService>().Object, new Mock<IWebHostEnvironment>().Object);
 
 
@@ -136,7 +132,7 @@ namespace APICore.Test
             // ARRANGE
             var fakeUserRequest = new SignUpRequest
             {
-                Email = "pepe@itguy.com",
+                Email = "pepe2@itguy.com",
                 FullName = "Pepe Perez",
                 Gender = 0,
                 Phone = "+53 12345678",
@@ -145,9 +141,7 @@ namespace APICore.Test
                 ConfirmationPassword = "S3cretP@$$"
             };
 
-            var users = new List<User>();
-            uowMock.Setup(repo => repo.UserRepository.FindAllAsync(x => x.Email == fakeUserRequest.Email)).ReturnsAsync(users);
-            var accountService = new AccountService(new Mock<IConfiguration>().Object, uowMock.Object, new Mock<IStringLocalizer<IAccountService>>().Object, new Mock<IDetectionService>().Object, Setup.GetBlobHardCodedSettings());
+            var accountService = new AccountService(new Mock<IConfiguration>().Object, Setup.MockDatabase().Object, new Mock<IStringLocalizer<IAccountService>>().Object, new Mock<IDetectionService>().Object, Setup.GetBlobHardCodedSettings());
             var accountController = new AccountController(accountService, new Mock<AutoMapper.IMapper>().Object, new Mock<IEmailService>().Object, new Mock<IWebHostEnvironment>().Object);
 
 
@@ -164,7 +158,7 @@ namespace APICore.Test
             // ARRANGE
             var fakeUserRequest = new SignUpRequest
             {
-                Email = "pepe@itguy.com",
+                Email = "pepe2@itguy.com",
                 FullName = "Pepe Perez",
                 Gender = 0,
                 Phone = "+53 12345678",
@@ -173,17 +167,52 @@ namespace APICore.Test
                 ConfirmationPassword = "S3cretP@$$"
             };
 
-            var users = new List<User>();
-            uowMock.Setup(repo => repo.UserRepository.FindAllAsync(x => x.Email == fakeUserRequest.Email)).ReturnsAsync(users);
-            var accountService = new AccountService(new Mock<IConfiguration>().Object, uowMock.Object, new Mock<IStringLocalizer<IAccountService>>().Object, new Mock<IDetectionService>().Object, Setup.GetBlobHardCodedSettings());
+            var accountService = new AccountService(new Mock<IConfiguration>().Object, Setup.MockDatabase().Object, new Mock<IStringLocalizer<IAccountService>>().Object, new Mock<IDetectionService>().Object, Setup.GetBlobHardCodedSettings());
             var accountController = new AccountController(accountService, new Mock<AutoMapper.IMapper>().Object, new Mock<IEmailService>().Object, new Mock<IWebHostEnvironment>().Object);
-
 
             // ACT
             var taskResult = (BaseBadRequestException)accountController.Register(fakeUserRequest).Exception.InnerException;
 
             // ASSERT
             Assert.Equal(400, taskResult.HttpCode);
+        }
+
+        [Fact(DisplayName = "Successfully Login Should Return Ok Status Code (200)")]
+        public void SuccessfullyLoginShouldReturnOk()
+        {
+            // ARRANGE
+            var fakeLoginRequest = new LoginRequest
+            {
+                Email = "carlos@itguy.com",
+                Password = "S3cretP@$$"
+            };
+
+            var ds = new Mock<IDetectionService>();
+            ds.Setup(setup => setup.UserAgent).Returns(new UserAgent(@"Mozilla / 5.0(Windows NT 10.0; Win64; x64; rv: 86.0) Gecko / 20100101 Firefox / 86.0"));
+
+            // Necessary for login  
+            var config = new Mock<IConfiguration>();
+            config.Setup(setup => setup.GetSection("BearerTokens")["Issuer"]).Returns(@"http://apicore.com");
+            config.Setup(setup => setup.GetSection("BearerTokens")["Key"]).Returns(@"GUID-A54a-SS15-SwEr-opo4-56YH");
+            config.Setup(setup => setup.GetSection("BearerTokens")["Audience"]).Returns(@"Any");
+            config.Setup(setup => setup.GetSection("BearerTokens")["AccessTokenExpirationHours"]).Returns("7");
+            config.Setup(setup => setup.GetSection("BearerTokens")["RefreshTokenExpirationHours"]).Returns("60");
+
+            var httpContext = new DefaultHttpContext();
+
+            var accountService = new AccountService(config.Object, Setup.MockDatabase().Object, new Mock<IStringLocalizer<IAccountService>>().Object, ds.Object, Setup.GetBlobHardCodedSettings());
+            var accountController = new AccountController(accountService, new Mock<AutoMapper.IMapper>().Object, new Mock<IEmailService>().Object, new Mock<IWebHostEnvironment>().Object) {
+                ControllerContext = new ControllerContext()
+                {
+                    HttpContext = httpContext,
+                }
+            };
+
+            // ACT
+            var taskResult = (ObjectResult)accountController.Login(fakeLoginRequest).Result;
+
+            // ASSERT
+            Assert.Equal(200, taskResult.StatusCode);
         }
     }
 }
