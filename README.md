@@ -1,7 +1,9 @@
-# Introduction
+# NET Core 5 API
+
+[![Continuous Integration](https://github.com/techsavyntsprint/netcore-api/workflows/CI/badge.svg)](https://github.com/techsavyntsprint/netcore-api/actions)
 The solution includes the API to be reused. 
 
-# Build and Test
+## Build and Test
 To build the project, an appsetings.json file, that defines a connection, needs to be added to APICore.API project's root. Also a sample appsettings is provided in order you can duplicat it and adjust the values as per your needs.
 
 ## APICore sample_appsettings.json
