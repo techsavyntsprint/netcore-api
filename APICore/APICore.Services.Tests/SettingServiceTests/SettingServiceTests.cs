@@ -86,7 +86,7 @@ namespace APICore.Services.Tests.SettingServiceTests
             var value = await service.GetSettingAsync(existingKey);
 
             // Assert
-            Assert.Equal("2", value);
+            Assert.Equal("1", value);
         }
 
         #endregion
