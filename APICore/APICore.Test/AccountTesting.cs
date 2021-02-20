@@ -213,13 +213,14 @@ namespace APICore.Test
             // ASSERT
             Assert.Equal(401, taskResult.HttpCode);
         }
+
         [Fact(DisplayName = "Successfully Logout Should Return Ok Status Code (200)")]
         public void SuccessfullyLogoutShouldReturnOk()
         {
             // ARRANGE
             var fakehttpContext = new DefaultHttpContext();
 
-            fakehttpContext.Request.Headers.Add("Authorization", "Bearer s0m34cc$$3$T0k3n");
+            fakehttpContext.Request.Headers.Add("Authorization", "Bearer s0m34cc$3$$T0k3n");
 
             var fakeClaims = new List<Claim>()
             {
@@ -241,7 +242,7 @@ namespace APICore.Test
             // ARRANGE
             var fakehttpContext = new DefaultHttpContext();
 
-            fakehttpContext.Request.Headers.Add("Authorization", "Bearer s0m34cc$$3$T0k3n");
+            fakehttpContext.Request.Headers.Add("Authorization", "Bearer s0m34cc$3$$T0k3n");
 
             var fakeClaims = new List<Claim>()
             {

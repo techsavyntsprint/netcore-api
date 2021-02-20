@@ -163,6 +163,10 @@ namespace APICore.Services.Impls
                     }
                 }
             }
+            else
+            {
+                throw new UserNotFoundException(_localizer);
+            }
 
         }
 
@@ -212,6 +216,10 @@ namespace APICore.Services.Impls
                         await _uow.CommitAsync();
                     }
                 }
+            }
+            else
+            {
+                throw new UserNotFoundException(_localizer);
             }
         }
 

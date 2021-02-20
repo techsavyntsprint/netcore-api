@@ -58,7 +58,7 @@ namespace APICore.Test
                 coreDbContext.Add(new UserToken
                 {
                     Id = 1,
-                    AccessToken = "s0m34cc$$3$T0k3n",
+                    AccessToken = "s0m34cc$3$$T0k3n",
                     UserId = 1
                 });
 
