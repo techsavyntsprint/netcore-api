@@ -95,10 +95,7 @@ namespace APICore.API.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> GlobalLogout()
         {
-            var claimsIdentity = this.User.Identity as ClaimsIdentity;
-            var userId = claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value;
-            await _accountService.GlobalLogoutAsync(int.Parse(userId));
-
+            await _accountService.GlobalLogoutAsync(User.Identity as ClaimsIdentity);
             return Ok();
         }
 

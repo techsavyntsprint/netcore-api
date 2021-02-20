@@ -22,7 +22,7 @@ namespace APICore.Services
 
         Task ChangePasswordAsync(ChangePasswordRequest changePassword, int userId);
 
-        Task GlobalLogoutAsync(int userId);
+        Task GlobalLogoutAsync(ClaimsIdentity claimsIdentity);
 
         Task<User> UpdateProfileAsync(UpdateProfileRequest updateProfile, int userId);
 

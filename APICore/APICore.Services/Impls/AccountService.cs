@@ -124,6 +124,48 @@ namespace APICore.Services.Impls
             return new JwtSecurityTokenHandler().WriteToken(jwt); //the method is called WriteToken but returns a string
         }
 
+        public async Task GlobalLogoutAsync(ClaimsIdentity claimsIdentity)
+        {
+            if (claimsIdentity == null)
+            {
+                throw new ArgumentNullException(nameof(claimsIdentity));
+            }
+
+            var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
+
+            if (userId > 0)
+            {
+                var user = await _uow.UserRepository.FindBy(u => u.Id == userId).FirstOrDefaultAsync();
+
+                // Check for wrong or not existant user
+                if (user == null)
+                {
+                    throw new UserNotFoundException(_localizer);
+                }
+
+                // Check for inactive user
+                if (user.Status == StatusEnum.INACTIVE)
+                {
+                    throw new AccountInactiveForbiddenException(_localizer);
+                }
+
+                var tokens = await _uow.UserTokenRepository.FindByAsync(t => t.UserId == userId);
+
+                if (tokens != null)
+                {
+                    if (tokens.Count > 0)
+                    {
+                        foreach (var item in tokens)
+                        {
+                            _uow.UserTokenRepository.Delete(item);
+                        }
+                        await _uow.CommitAsync();
+                    }
+                }
+            }
+
+        }
+
         public async Task LogoutAsync(string accessToken, ClaimsIdentity claimsIdentity)
         {
             // Null or empty parameters check
@@ -349,17 +391,6 @@ namespace APICore.Services.Impls
 
             _uow.UserRepository.Update(user);
 
-            await _uow.CommitAsync();
-        }
-
-        public async Task GlobalLogoutAsync(int userId)
-        {
-            var tokens = await _uow.UserTokenRepository.FindByAsync(t => t.UserId == userId);
-
-            foreach (var item in tokens)
-            {
-                _uow.UserTokenRepository.Delete(item);
-            }
             await _uow.CommitAsync();
         }
 
