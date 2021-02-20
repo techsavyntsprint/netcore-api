@@ -1,36 +1,26 @@
-using Moq;
 using System;
 using Xunit;
-using APICore.Services;
 using APICore.Common.DTO.Request;
-using APICore.API.Controllers;
-using Microsoft.AspNetCore.Hosting;
-using APICore.Data.UoW;
-using APICore.Services.Impls;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Localization;
-using Wangkanai.Detection.Services;
-using System.Collections.Generic;
-using APICore.Data.Entities;
 using Microsoft.AspNetCore.Mvc;
 using APICore.Services.Exceptions;
-using APICore.Data.Repository;
-using APICore.Data;
-using Microsoft.EntityFrameworkCore;
-using Wangkanai.Detection.Models;
+using APICore.Test.Mocks;
 using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
+using System.Collections.Generic;
 
 namespace APICore.Test
 {
     public class AccountTesting
     {
-        private readonly Mock<IUnitOfWork> uowMock;
-
-        public AccountTesting()
-        {
-            uowMock = new Mock<IUnitOfWork>();
-        }
-
+        //private readonly LoginAction login;
+        //private readonly LogoutAction logout;
+        //private readonly RegisterAction register;
+        //public AccountTesting()
+        //{
+        //    login = new LoginAction();
+        //    logout = new LogoutAction();
+        //    register = new RegisterAction();
+        //}
         [Fact(DisplayName = "Successfully Register Should Return Created Status Code (201)")]
         public void SuccessfullyRegisterShouldReturnCreated()
         {
@@ -46,8 +36,7 @@ namespace APICore.Test
                 ConfirmationPassword = "S3cretP@$$"
             };
 
-            var accountService = new AccountService(new Mock<IConfiguration>().Object, Setup.MockDatabase().Object, new Mock<IStringLocalizer<IAccountService>>().Object, new Mock<IDetectionService>().Object, Setup.GetBlobHardCodedSettings());
-            var accountController = new AccountController(accountService, new Mock<AutoMapper.IMapper>().Object, new Mock<IEmailService>().Object, new Mock<IWebHostEnvironment>().Object);
+            var accountController = RegisterAction.RegisterEndpoint;
 
             // ACT
             var taskResult = (ObjectResult)accountController.Register(fakeUserRequest).Result;
@@ -71,8 +60,7 @@ namespace APICore.Test
                 ConfirmationPassword = "S3cretP@$$"
             };
 
-            var accountService = new AccountService(new Mock<IConfiguration>().Object, Setup.MockDatabase().Object, new Mock<IStringLocalizer<IAccountService>>().Object, new Mock<IDetectionService>().Object, Setup.GetBlobHardCodedSettings());
-            var accountController = new AccountController(accountService, new Mock<AutoMapper.IMapper>().Object, new Mock<IEmailService>().Object, new Mock<IWebHostEnvironment>().Object);
+            var accountController = RegisterAction.RegisterEndpoint;
 
             // ACT
             var taskResult = (BaseBadRequestException)accountController.Register(fakeUserRequest).Exception.InnerException;
@@ -90,8 +78,7 @@ namespace APICore.Test
                 Email = "pepe@itguy.com"
             };
 
-            var accountService = new AccountService(new Mock<IConfiguration>().Object, Setup.MockDatabase().Object, new Mock<IStringLocalizer<IAccountService>>().Object, new Mock<IDetectionService>().Object, Setup.GetBlobHardCodedSettings());
-            var accountController = new AccountController(accountService, new Mock<AutoMapper.IMapper>().Object, new Mock<IEmailService>().Object, new Mock<IWebHostEnvironment>().Object);
+            var accountController = RegisterAction.RegisterEndpoint;
 
             // ACT
             var taskResult = (BaseBadRequestException)accountController.Register(fakeUserRequest).Exception.InnerException;
@@ -115,9 +102,7 @@ namespace APICore.Test
                 ConfirmationPassword = "S3cretP@$$"
             };
 
-            var accountService = new AccountService(new Mock<IConfiguration>().Object, Setup.MockDatabase().Object, new Mock<IStringLocalizer<IAccountService>>().Object, new Mock<IDetectionService>().Object, Setup.GetBlobHardCodedSettings());
-            var accountController = new AccountController(accountService, new Mock<AutoMapper.IMapper>().Object, new Mock<IEmailService>().Object, new Mock<IWebHostEnvironment>().Object);
-
+            var accountController = RegisterAction.RegisterEndpoint;
 
             // ACT
             var taskResult = (BaseBadRequestException)accountController.Register(fakeUserRequest).Exception.InnerException;
@@ -141,9 +126,7 @@ namespace APICore.Test
                 ConfirmationPassword = "S3cretP@$$"
             };
 
-            var accountService = new AccountService(new Mock<IConfiguration>().Object, Setup.MockDatabase().Object, new Mock<IStringLocalizer<IAccountService>>().Object, new Mock<IDetectionService>().Object, Setup.GetBlobHardCodedSettings());
-            var accountController = new AccountController(accountService, new Mock<AutoMapper.IMapper>().Object, new Mock<IEmailService>().Object, new Mock<IWebHostEnvironment>().Object);
-
+            var accountController = RegisterAction.RegisterEndpoint;
 
             // ACT
             var taskResult = (BaseBadRequestException)accountController.Register(fakeUserRequest).Exception.InnerException;
@@ -167,8 +150,7 @@ namespace APICore.Test
                 ConfirmationPassword = "S3cretP@$$"
             };
 
-            var accountService = new AccountService(new Mock<IConfiguration>().Object, Setup.MockDatabase().Object, new Mock<IStringLocalizer<IAccountService>>().Object, new Mock<IDetectionService>().Object, Setup.GetBlobHardCodedSettings());
-            var accountController = new AccountController(accountService, new Mock<AutoMapper.IMapper>().Object, new Mock<IEmailService>().Object, new Mock<IWebHostEnvironment>().Object);
+            var accountController = RegisterAction.RegisterEndpoint;
 
             // ACT
             var taskResult = (BaseBadRequestException)accountController.Register(fakeUserRequest).Exception.InnerException;
@@ -187,29 +169,67 @@ namespace APICore.Test
                 Password = "S3cretP@$$"
             };
 
-            var ds = new Mock<IDetectionService>();
-            ds.Setup(setup => setup.UserAgent).Returns(new UserAgent(@"Mozilla / 5.0(Windows NT 10.0; Win64; x64; rv: 86.0) Gecko / 20100101 Firefox / 86.0"));
-
-            // Necessary for login  
-            var config = new Mock<IConfiguration>();
-            config.Setup(setup => setup.GetSection("BearerTokens")["Issuer"]).Returns(@"http://apicore.com");
-            config.Setup(setup => setup.GetSection("BearerTokens")["Key"]).Returns(@"GUID-A54a-SS15-SwEr-opo4-56YH");
-            config.Setup(setup => setup.GetSection("BearerTokens")["Audience"]).Returns(@"Any");
-            config.Setup(setup => setup.GetSection("BearerTokens")["AccessTokenExpirationHours"]).Returns("7");
-            config.Setup(setup => setup.GetSection("BearerTokens")["RefreshTokenExpirationHours"]).Returns("60");
-
-            var httpContext = new DefaultHttpContext();
-
-            var accountService = new AccountService(config.Object, Setup.MockDatabase().Object, new Mock<IStringLocalizer<IAccountService>>().Object, ds.Object, Setup.GetBlobHardCodedSettings());
-            var accountController = new AccountController(accountService, new Mock<AutoMapper.IMapper>().Object, new Mock<IEmailService>().Object, new Mock<IWebHostEnvironment>().Object) {
-                ControllerContext = new ControllerContext()
-                {
-                    HttpContext = httpContext,
-                }
-            };
+            var accountController = LoginAction.LoginEndpoint;
 
             // ACT
             var taskResult = (ObjectResult)accountController.Login(fakeLoginRequest).Result;
+
+            // ASSERT
+            Assert.Equal(200, taskResult.StatusCode);
+        }
+        [Fact(DisplayName = "Empty Email On Login Should Return Not Found Exception")]
+        public void EmptyEmailOnLoginShouldReturnBadRequestException()
+        {
+            // ARRANGE
+            var fakeLoginRequest = new LoginRequest
+            {
+                Email = "",
+                Password = "S3cretP@$$"
+            };
+
+            var accountController = LoginAction.LoginEndpoint;
+
+            // ACT
+            var taskResult = (BaseNotFoundException)accountController.Login(fakeLoginRequest).Exception.InnerException;
+
+            // ASSERT
+            Assert.Equal(404, taskResult.HttpCode);
+        }
+        [Fact(DisplayName = "Wrong Password Should Return Unauthorized Exception")]
+        public void WrongPasswordShouldReturnUnauthorizedException()
+        {
+            // ARRANGE
+            var fakeLoginRequest = new LoginRequest
+            {
+                Email = "carlos@itguy.com",
+                Password = "Z3cretP@$$"
+            };
+
+            var accountController = LoginAction.LoginEndpoint;
+
+            // ACT
+            var taskResult = (BaseUnauthorizedException)accountController.Login(fakeLoginRequest).Exception.InnerException;
+
+            // ASSERT
+            Assert.Equal(401, taskResult.HttpCode);
+        }
+        [Fact(DisplayName = "Successfully Logout Should Return Ok Status Code (200)")]
+        public void SuccessfullyLogoutShouldReturnOk()
+        {
+            // ARRANGE
+            var fakehttpContext = new DefaultHttpContext();
+
+            fakehttpContext.Request.Headers.Add("Authorization", "Bearer s0m34cc$$3$T0k3n");
+
+            var fakeClaims = new List<Claim>()
+            {
+                new Claim(ClaimTypes.UserData, "1")
+            };
+
+            var accountController = LogoutAction.LogoutEndpoint(fakehttpContext, fakeClaims);
+
+            // ACT
+            var taskResult = (OkResult)accountController.Logout().Result;
 
             // ASSERT
             Assert.Equal(200, taskResult.StatusCode);
