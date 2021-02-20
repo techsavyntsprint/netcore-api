@@ -12,7 +12,7 @@ namespace APICore.Services
 
         Task<(User user, string accessToken, string refreshToken)> LoginAsync(LoginRequest loginRequest);
 
-        Task LogoutAsync(int userIdValue, string accessToken);
+        Task LogoutAsync(string accessToken, ClaimsIdentity claimsIdentity);
 
         Task<ClaimsPrincipal> GetPrincipalFromExpiredTokenAsync(string token);
 

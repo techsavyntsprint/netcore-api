@@ -103,11 +103,9 @@ namespace APICore.Services.Impls
         private string GetRefreshToken()
         {
             var randomNumber = new byte[32];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(randomNumber);
-                return Convert.ToBase64String(randomNumber);
-            }
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
         }
 
         private string GetToken(IEnumerable<Claim> claims)
@@ -126,15 +124,53 @@ namespace APICore.Services.Impls
             return new JwtSecurityTokenHandler().WriteToken(jwt); //the method is called WriteToken but returns a string
         }
 
-        public async Task LogoutAsync(int userIdValue, string accessToken)
+        public async Task LogoutAsync(string accessToken, ClaimsIdentity claimsIdentity)
         {
-            var tokens = await _uow.UserTokenRepository.FindByAsync(t => t.UserId == userIdValue && t.AccessToken == accessToken);
-
-            foreach (var item in tokens)
+            // Null or empty parameters check
+            if(string.IsNullOrEmpty(accessToken))
             {
-                _uow.UserTokenRepository.Delete(item);
+                throw new ArgumentNullException(nameof(accessToken));
             }
-            await _uow.CommitAsync();
+            if(claimsIdentity == null)
+            {
+                throw new ArgumentNullException(nameof(claimsIdentity));
+            }
+
+            var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
+
+            var token = accessToken.Split("Bearer")[1].Trim();
+
+            if(userId > 0 && !string.IsNullOrEmpty(token))
+            {
+                var user = await _uow.UserRepository.FindBy(u => u.Id == userId).FirstOrDefaultAsync();
+
+                // Check for wrong or not existant user
+                if (user == null)
+                {
+                    throw new UserNotFoundException(_localizer);
+                }
+
+                // Check for inactive user
+                if (user.Status == StatusEnum.INACTIVE)
+                {
+                    throw new AccountInactiveForbiddenException(_localizer);
+                }
+
+                var tokens = await _uow.UserTokenRepository.FindByAsync(t => t.UserId == userId && t.AccessToken == accessToken);
+
+                // Only do a commit when you actually delete something
+                if(tokens != null)
+                {
+                    if (token.Length > 0)
+                    {
+                        foreach (var item in tokens)
+                        {
+                            _uow.UserTokenRepository.Delete(item);
+                        }
+                        await _uow.CommitAsync();
+                    }
+                }
+            }
         }
 
         public async Task SignUpAsync(SignUpRequest suRequest)
@@ -271,13 +307,15 @@ namespace APICore.Services.Impls
         private List<Claim> GetClaims(User user)
         {
             var issuer = _configuration.GetSection("BearerTokens")["Issuer"];
-            var claims = new List<Claim>();
-            claims.Add(new Claim(ClaimTypes.Email, user.Email, ClaimValueTypes.Email, issuer));
-            claims.Add(new Claim(ClaimTypes.AuthenticationMethod, "bearer", ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(ClaimTypes.NameIdentifier, user.FullName, ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(ClaimTypes.DateOfBirth, user.BirthDate.ToString(), ClaimValueTypes.Date, issuer));
-            claims.Add(new Claim(ClaimTypes.Gender, user.Gender.ToString(), ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(ClaimTypes.UserData, user.Id.ToString(), ClaimValueTypes.String, issuer));
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Email, user.Email, ClaimValueTypes.Email, issuer),
+                new Claim(ClaimTypes.AuthenticationMethod, "bearer", ClaimValueTypes.String, issuer),
+                new Claim(ClaimTypes.NameIdentifier, user.FullName, ClaimValueTypes.String, issuer),
+                new Claim(ClaimTypes.DateOfBirth, user.BirthDate.ToString(), ClaimValueTypes.Date, issuer),
+                new Claim(ClaimTypes.Gender, user.Gender.ToString(), ClaimValueTypes.String, issuer),
+                new Claim(ClaimTypes.UserData, user.Id.ToString(), ClaimValueTypes.String, issuer)
+            };
             return claims;
         }
 

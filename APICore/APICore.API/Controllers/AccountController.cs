@@ -81,11 +81,7 @@ namespace APICore.API.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> Logout()
         {
-            var accessToken = Request.Headers["Authorization"];
-            var claimsIdentity = this.User.Identity as ClaimsIdentity;
-            var userId = claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value;
-            await _accountService.LogoutAsync(int.Parse(userId), accessToken.ToString().Split("Bearer")[1].Trim());
-
+            await _accountService.LogoutAsync(Request.Headers["Authorization"], User.Identity as ClaimsIdentity);
             return Ok();
         }
 
