@@ -11,8 +11,6 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using System.Collections.Generic;
 using System.Security.Claims;
-using System.Security.Principal;
-using Wangkanai.Detection.Models;
 using Wangkanai.Detection.Services;
 
 namespace APICore.Test.Mocks

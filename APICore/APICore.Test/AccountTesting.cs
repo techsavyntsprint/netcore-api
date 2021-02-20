@@ -234,5 +234,27 @@ namespace APICore.Test
             // ASSERT
             Assert.Equal(200, taskResult.StatusCode);
         }
+
+        [Fact(DisplayName = "Successfully Global Logout Should Return Ok Status Code (200)")]
+        public void SuccessfullyGlobalLogoutShouldReturnOk()
+        {
+            // ARRANGE
+            var fakehttpContext = new DefaultHttpContext();
+
+            fakehttpContext.Request.Headers.Add("Authorization", "Bearer s0m34cc$$3$T0k3n");
+
+            var fakeClaims = new List<Claim>()
+            {
+                new Claim(ClaimTypes.UserData, "1")
+            };
+
+            var accountController = LogoutAction.LogoutEndpoint(fakehttpContext, fakeClaims);
+
+            // ACT
+            var taskResult = (OkResult)accountController.GlobalLogout().Result;
+
+            // ASSERT
+            Assert.Equal(200, taskResult.StatusCode);
+        }
     }
 }
