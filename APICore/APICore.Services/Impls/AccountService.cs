@@ -161,7 +161,7 @@ namespace APICore.Services.Impls
                 // Only do a commit when you actually delete something
                 if(tokens != null)
                 {
-                    if (token.Length > 0)
+                    if (tokens.Count > 0)
                     {
                         foreach (var item in tokens)
                         {
