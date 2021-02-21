@@ -22,7 +22,7 @@ namespace APICore.API.Controllers
     {
         private readonly IAccountService _accountService;
         private readonly IMapper _mapper;
-        private IWebHostEnvironment _env;
+        private readonly IWebHostEnvironment _env;
         private readonly IEmailService _emailService;
 
         public AccountController(IAccountService accountService, IMapper mapper, IEmailService emailService, IWebHostEnvironment env)
@@ -111,9 +111,7 @@ namespace APICore.API.Controllers
         public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest refreshToken)
         {
             var principal = await _accountService.GetPrincipalFromExpiredTokenAsync(refreshToken.Token);
-
-            await _accountService.GetRefreshTokenAsync(refreshToken, principal.Claims.Where(c => c.Type == ClaimTypes.UserData).First().Value); //retrieve the refresh token from a data store
-
+            await _accountService.GetRefreshTokenAsync(refreshToken, principal);
             var result = await _accountService.GenerateNewTokensAsync(refreshToken.Token, refreshToken.RefreshToken);
             HttpContext.Response.Headers["Authorization"] = "Bearer " + result.accessToken;
             HttpContext.Response.Headers["RefreshToken"] = result.refreshToken;
@@ -133,10 +131,7 @@ namespace APICore.API.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest changePassword)
         {
-            var claimsIdentity = this.User.Identity as ClaimsIdentity;
-            var userId = claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value;
-            await _accountService.ChangePasswordAsync(changePassword, int.Parse(userId));
-
+            await _accountService.ChangePasswordAsync(changePassword, User.Identity as ClaimsIdentity);
             return Ok();
         }
 
@@ -151,9 +146,7 @@ namespace APICore.API.Controllers
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest updateProfile)
         {
-            var claimsIdentity = this.User.Identity as ClaimsIdentity;
-            var userId = claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value;
-            var result = await _accountService.UpdateProfileAsync(updateProfile, int.Parse(userId));
+            var result = await _accountService.UpdateProfileAsync(updateProfile, User.Identity as ClaimsIdentity);
             var user = _mapper.Map<UserResponse>(result);
 
             return Ok(new ApiOkResponse(user));
@@ -174,8 +167,8 @@ namespace APICore.API.Controllers
             if (isValid)
             {
                 var principal = await _accountService.GetPrincipalFromExpiredTokenAsync(validateToken.Token);
-                var userId = principal.Claims.Where(c => c.Type == ClaimTypes.UserData).First().Value;
-                var user = await _accountService.GetUserAsync(int.Parse(userId));
+                var userId = Convert.ToInt32(principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.UserData).Value);
+                var user = await _accountService.GetUserAsync(userId);
                 var mapped = _mapper.Map<UserResponse>(user);
                 return Ok(new ApiOkResponse(mapped));
             }
@@ -198,9 +191,7 @@ namespace APICore.API.Controllers
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> ChangeAccountStatus([FromBody] ChangeAccountStatusRequest changeAccountStatus)
         {
-            var claimsIdentity = this.User.Identity as ClaimsIdentity;
-            var userId = claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value;
-            await _accountService.ChangeAccountStatusAsync(changeAccountStatus, int.Parse(userId));
+            await _accountService.ChangeAccountStatusAsync(changeAccountStatus, User.Identity as ClaimsIdentity);
             return Ok();
         }
 
@@ -215,11 +206,8 @@ namespace APICore.API.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> UploadAvatar(IFormFile file)
         {
-            var claimsIdentity = this.User.Identity as ClaimsIdentity;
-            var userId = claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value;
-            var result = await _accountService.UploadAvatar(file, int.Parse(userId));
+            var result = await _accountService.UploadAvatar(file, User.Identity as ClaimsIdentity);
             var user = _mapper.Map<UserResponse>(result);
-
             return Ok(new ApiOkResponse(user));
         }
 

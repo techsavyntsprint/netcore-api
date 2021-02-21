@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
+using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -151,6 +152,7 @@ namespace APICore.Services.Impls
 
                 var tokens = await _uow.UserTokenRepository.FindByAsync(t => t.UserId == userId);
 
+                // Only do a commit when you actually delete something
                 if (tokens != null)
                 {
                     if (tokens.Count > 0)
@@ -173,11 +175,11 @@ namespace APICore.Services.Impls
         public async Task LogoutAsync(string accessToken, ClaimsIdentity claimsIdentity)
         {
             // Null or empty parameters check
-            if(string.IsNullOrEmpty(accessToken))
+            if (string.IsNullOrEmpty(accessToken))
             {
                 throw new ArgumentNullException(nameof(accessToken));
             }
-            if(claimsIdentity == null)
+            if (claimsIdentity == null)
             {
                 throw new ArgumentNullException(nameof(claimsIdentity));
             }
@@ -186,7 +188,7 @@ namespace APICore.Services.Impls
 
             var token = accessToken.Split("Bearer")[1].Trim();
 
-            if(userId > 0 && !string.IsNullOrEmpty(token))
+            if (userId > 0 && !string.IsNullOrEmpty(token))
             {
                 var user = await _uow.UserRepository.FindBy(u => u.Id == userId).FirstOrDefaultAsync();
 
@@ -205,7 +207,7 @@ namespace APICore.Services.Impls
                 var tokens = await _uow.UserTokenRepository.FindByAsync(t => t.UserId == userId && t.AccessToken == accessToken);
 
                 // Only do a commit when you actually delete something
-                if(tokens != null)
+                if (tokens != null)
                 {
                     if (tokens.Count > 0)
                     {
@@ -314,8 +316,10 @@ namespace APICore.Services.Impls
             return Task.FromResult(principal);
         }
 
-        public async Task GetRefreshTokenAsync(RefreshTokenRequest refreshToken, string userId)
+        public async Task GetRefreshTokenAsync(RefreshTokenRequest refreshToken, ClaimsPrincipal principal)
         {
+            var userId = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.UserData).Value;
+
             var refToken = await _uow.UserTokenRepository.FindBy(u => u.UserId == int.Parse(userId) && u.AccessToken == refreshToken.Token)
                 .FirstOrDefaultAsync();
             if (refToken == null)
@@ -369,8 +373,13 @@ namespace APICore.Services.Impls
             return claims;
         }
 
-        public async Task ChangePasswordAsync(ChangePasswordRequest changePassword, int userId)
+        public async Task ChangePasswordAsync(ChangePasswordRequest changePassword, ClaimsIdentity claimsIdentity)
         {
+            if (claimsIdentity == null)
+            {
+                throw new ArgumentNullException(nameof(claimsIdentity));
+            }
+            var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
             var user = await _uow.UserRepository.FindBy(u => u.Id == userId).FirstOrDefaultAsync();
             var passwordHash = GetSha256Hash(changePassword.OldPassword);
 
@@ -426,8 +435,15 @@ namespace APICore.Services.Impls
             return dd;
         }
 
-        public async Task<User> UpdateProfileAsync(UpdateProfileRequest updateProfile, int userId)
+        public async Task<User> UpdateProfileAsync(UpdateProfileRequest updateProfile, ClaimsIdentity claimsIdentity)
         {
+            if (claimsIdentity == null)
+            {
+                throw new ArgumentNullException(nameof(claimsIdentity));
+            }
+
+            var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
+
             var user = await _uow.UserRepository.FindBy(u => u.Id == userId).FirstOrDefaultAsync();
 
             if (user == null)
@@ -496,8 +512,14 @@ namespace APICore.Services.Impls
             return user;
         }
 
-        public async Task ChangeAccountStatusAsync(ChangeAccountStatusRequest changeAccountStatus, int userId)
+        public async Task ChangeAccountStatusAsync(ChangeAccountStatusRequest changeAccountStatus, ClaimsIdentity claimsIdentity)
         {
+            if (claimsIdentity == null)
+            {
+                throw new ArgumentNullException(nameof(claimsIdentity));
+            }
+
+            var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
             var user = await _uow.UserRepository.FindBy(u => u.Identity == changeAccountStatus.Identity).FirstOrDefaultAsync();
 
             if (user == null)
@@ -526,8 +548,15 @@ namespace APICore.Services.Impls
             await _uow.CommitAsync();
         }
 
-        public async Task<User> UploadAvatar(IFormFile file, int userId)
+        public async Task<User> UploadAvatar(IFormFile file, ClaimsIdentity claimsIdentity)
         {
+            if (claimsIdentity == null)
+            {
+                throw new ArgumentNullException(nameof(claimsIdentity));
+            }
+
+            var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
+
             var user = await _uow.UserRepository.FindBy(u => u.Id == userId).FirstOrDefaultAsync();
 
             if (user == null)
@@ -553,33 +582,31 @@ namespace APICore.Services.Impls
 
             using (Stream stream = file.OpenReadStream())
             {
-                using (var binaryReader = new BinaryReader(stream))
+                using var binaryReader = new BinaryReader(stream);
+                var fileContent = binaryReader.ReadBytes((int)file.Length);
+                var mime = file.ContentType;
+                if (!mime.Equals("image/png") && !mime.Equals("image/jpg") && !mime.Equals("image/jpeg"))
                 {
-                    var fileContent = binaryReader.ReadBytes((int)file.Length);
-                    var mime = file.ContentType;
-                    if (!mime.Equals("image/png") && !mime.Equals("image/jpg") && !mime.Equals("image/jpeg"))
-                    {
-                        throw new FileInvalidTypeBadRequestException(_localizer);
-                    }
-
-                    string guid = Guid.NewGuid().ToString();
-
-                    if (!string.IsNullOrWhiteSpace(user.Avatar))
-                    {
-                        //delete the old one in order to avoid client cache problems
-                        var segments = new Uri(user.Avatar).Segments;
-                        var oldGuid = segments[segments.Length - 1];
-                        await RemoveOldImageFromBlobStorage(imagesContainer, oldGuid);
-                    }
-
-                    //upload the new one and update user avatar's properties
-                    await UploadImageToBlobStorage(fileContent, imagesContainer, guid, mime);
-                    user.Avatar = string.Format("{0}/{1}", imagesRootPath, guid);
-                    user.AvatarMimeType = mime;
-
-                    await _uow.UserRepository.UpdateAsync(user, userId);
-                    await _uow.CommitAsync();
+                    throw new FileInvalidTypeBadRequestException(_localizer);
                 }
+
+                string guid = Guid.NewGuid().ToString();
+
+                if (!string.IsNullOrWhiteSpace(user.Avatar))
+                {
+                    //delete the old one in order to avoid client cache problems
+                    var segments = new Uri(user.Avatar).Segments;
+                    var oldGuid = segments[segments.Length - 1];
+                    await RemoveOldImageFromBlobStorage(imagesContainer, oldGuid);
+                }
+
+                //upload the new one and update user avatar's properties
+                await UploadImageToBlobStorage(fileContent, imagesContainer, guid, mime);
+                user.Avatar = string.Format("{0}/{1}", imagesRootPath, guid);
+                user.AvatarMimeType = mime;
+
+                await _uow.UserRepository.UpdateAsync(user, userId);
+                await _uow.CommitAsync();
             }
 
             return user;
