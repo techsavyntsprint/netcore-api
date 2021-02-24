@@ -19,6 +19,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Serilog;
+using Stripe;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -70,10 +71,14 @@ namespace APICore.API
 
             services.AddTransient<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-            services.AddTransient<IAccountService, AccountService>();
+            services.AddTransient<IAccountService, Services.Impls.AccountService>();
             services.AddTransient<ISettingService, SettingService>();
             services.AddTransient<IEmailService, EmailService>();
             services.AddTransient<ILogService, LogService>();
+
+            var stripeApiKey = Configuration.GetSection("Stripe")["ApiKey"];
+            if (!string.IsNullOrEmpty(stripeApiKey))
+                StripeConfiguration.ApiKey = stripeApiKey;
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -28,5 +28,8 @@
       "Microsoft.Hosting.Lifetime": "Information"
     }
   },
+  "Stripe": {
+    "ApiKey": ""
+  },
   "AllowedHosts": "*"
 }
