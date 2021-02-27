@@ -235,6 +235,27 @@ namespace APICore.Test
             // ASSERT
             Assert.Equal(200, taskResult.StatusCode);
         }
+        [Fact(DisplayName = "Wrong User Logout Should Return Not Found Exception(404)")]
+        public void WrongUserLogoutShouldReturnNotFoundException()
+        {
+            // ARRANGE
+            var fakehttpContext = new DefaultHttpContext();
+
+            fakehttpContext.Request.Headers.Add("Authorization", "Bearer s0m34cc$3$$T0k3n");
+
+            var fakeClaims = new List<Claim>()
+            {
+                new Claim(ClaimTypes.UserData, "100")
+            };
+
+            var accountController = LogoutAction.LogoutEndpoint(fakehttpContext, fakeClaims);
+
+            // ACT
+            var taskResult = (BaseNotFoundException)accountController.GlobalLogout().Exception.InnerException;
+
+            // ASSERT
+            Assert.Equal(404, taskResult.HttpCode);
+        }
 
         [Fact(DisplayName = "Successfully Global Logout Should Return Ok Status Code (200)")]
         public void SuccessfullyGlobalLogoutShouldReturnOk()
@@ -256,6 +277,79 @@ namespace APICore.Test
 
             // ASSERT
             Assert.Equal(200, taskResult.StatusCode);
+        }
+        [Fact(DisplayName = "Wrong User Global Logout Should Return Not Found Exception(404)")]
+        public void WrongUserGlobalLogoutShouldReturnNotFoundException()
+        {
+            // ARRANGE
+            var fakehttpContext = new DefaultHttpContext();
+
+            fakehttpContext.Request.Headers.Add("Authorization", "Bearer s0m34cc$3$$T0k3n");
+
+            var fakeClaims = new List<Claim>()
+            {
+                new Claim(ClaimTypes.UserData, "100")
+            };
+
+            var accountController = LogoutAction.LogoutEndpoint(fakehttpContext, fakeClaims);
+
+            // ACT
+            var taskResult = (BaseNotFoundException)accountController.GlobalLogout().Exception.InnerException;
+
+            // ASSERT
+            Assert.Equal(404, taskResult.HttpCode);
+        }
+        [Fact(DisplayName = "Successfully Change Account Status Should Return Ok(200)")]
+        public void SuccessfullyChangeAccountStatusShouldReturnOk()
+        {
+            // ARRANGE
+            var fakehttpContext = new DefaultHttpContext();
+
+            fakehttpContext.Request.Headers.Add("Authorization", "Bearer s0m34cc$3$$T0k3n");
+
+            var fakeClaims = new List<Claim>()
+            {
+                new Claim(ClaimTypes.UserData, "1")
+            };
+            ChangeAccountStatusRequest fakeChangeAccountStatus = new ChangeAccountStatusRequest
+            {
+                Identity = "someRandomIdentityString",
+                Active = true
+            };
+
+            var accountController = UserStatusAction.UserStatusEndpoint(fakehttpContext, fakeClaims);
+
+            // ACT
+            var taskResult = (OkResult)accountController.ChangeAccountStatus(fakeChangeAccountStatus).Result;
+
+            // ASSERT
+            Assert.Equal(200, taskResult.StatusCode);
+        }
+        [Fact(DisplayName = "Inactive User Change Account Status Himself Should Return Forbidden Exception (403)")]
+        public void InactiveUserChangeAccountStatusHimselfShouldReturnForbiddenException()
+        {
+            // ARRANGE
+            var fakehttpContext = new DefaultHttpContext();
+
+            fakehttpContext.Request.Headers.Add("Authorization", "Bearer s0m34cc$3$$T0k3ntwo");
+
+            var fakeClaims = new List<Claim>()
+            {
+                new Claim(ClaimTypes.UserData, "2")
+            };
+            ChangeAccountStatusRequest fakeChangeAccountStatus = new ChangeAccountStatusRequest
+            {
+                Identity = "someRandomIdentityString",
+                Active = true
+            };
+
+            var accountController = UserStatusAction.UserStatusEndpoint(fakehttpContext, fakeClaims);
+
+            // ACT
+            var taskResult = (BaseForbiddenException)accountController.ChangeAccountStatus(fakeChangeAccountStatus).Exception.InnerException;
+
+            // ASSERT
+            Assert.Equal(403, taskResult.HttpCode);
         }
     }
 }

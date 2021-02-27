@@ -520,6 +520,16 @@ namespace APICore.Services.Impls
             }
 
             var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
+
+            // Check if the Master exist
+            var master = await _uow.UserRepository.FindBy(u => u.Id == userId).FirstOrDefaultAsync();
+
+            if (master == null)
+            {
+                throw new UserNotFoundException(_localizer);
+            }
+
+            // Find the Inactive User
             var user = await _uow.UserRepository.FindBy(u => u.Identity == changeAccountStatus.Identity).FirstOrDefaultAsync();
 
             if (user == null)
@@ -527,7 +537,8 @@ namespace APICore.Services.Impls
                 throw new UserNotFoundException(_localizer);
             }
 
-            if (user.Id == userId && changeAccountStatus.Active == false)
+            // You can't reActivate yourself
+            if (user.Id == userId && user.Status == StatusEnum.INACTIVE)
             {
                 throw new AccountDeactivatedForbiddenException(_localizer);
             }

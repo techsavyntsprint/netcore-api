@@ -11,8 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "APICore.Common", "APICore.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "APICore.Services", "APICore.Services\APICore.Services.csproj", "{1EDF51B2-2B36-4197-B670-75F92B457EF9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APICore.Test", "APICore.Test\APICore.Test.csproj", "{7E317ECD-5886-4550-BE89-DC59078C07C7}"
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APICore.Services.Tests", "APICore.Services.Tests\APICore.Services.Tests.csproj", "{8945A2D2-14F7-418F-82C9-ED379277B0DC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "APICore.Tests", "APICore.Test\APICore.Tests.csproj", "{7E317ECD-5886-4550-BE89-DC59078C07C7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "APICore.Services.Tests", "APICore.Services.Tests\APICore.Services.Tests.csproj", "{8945A2D2-14F7-418F-82C9-ED379277B0DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

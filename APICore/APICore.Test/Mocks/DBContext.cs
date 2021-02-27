@@ -52,14 +52,21 @@ namespace APICore.Test
                     Gender = 0,
                     Phone = "+53 12345678",
                     Password = @"gM3vIavHvte3fimrk2uVIIoAB//f2TmRuTy4IWwNWp0=",
-                    Status = StatusEnum.INACTIVE
+                    Status = StatusEnum.INACTIVE,
+                    Identity = "someRandomIdentityString"
                 });
-                // fake Token for Active User`
+                // fake Token for Active User
                 coreDbContext.Add(new UserToken
                 {
                     Id = 1,
                     AccessToken = "s0m34cc$3$$T0k3n",
                     UserId = 1
+                });
+                coreDbContext.Add(new UserToken
+                {
+                    Id = 2,
+                    AccessToken = "s0m34cc$3$$T0k3nTwo",
+                    UserId = 2
                 });
 
                 coreDbContext.SaveChanges();
