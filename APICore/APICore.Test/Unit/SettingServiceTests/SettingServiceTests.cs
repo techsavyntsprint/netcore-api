@@ -4,6 +4,7 @@ using APICore.Common.DTO.Request;
 using APICore.Data;
 using APICore.Data.Entities;
 using APICore.Data.UoW;
+using APICore.Services;
 using APICore.Services.Exceptions;
 using APICore.Services.Impls;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +12,7 @@ using Microsoft.Extensions.Localization;
 using Moq;
 using Xunit;
 
-namespace APICore.Services.Tests.SettingServiceTests
+namespace APICore.Test.SettingServiceTests
 {
     public abstract class SettingServiceTests
     {

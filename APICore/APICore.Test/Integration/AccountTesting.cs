@@ -12,15 +12,6 @@ namespace APICore.Test
 {
     public class AccountTesting
     {
-        //private readonly LoginAction login;
-        //private readonly LogoutAction logout;
-        //private readonly RegisterAction register;
-        //public AccountTesting()
-        //{
-        //    login = new LoginAction();
-        //    logout = new LogoutAction();
-        //    register = new RegisterAction();
-        //}
         [Fact(DisplayName = "Successfully Register Should Return Created Status Code (201)")]
         public void SuccessfullyRegisterShouldReturnCreated()
         {

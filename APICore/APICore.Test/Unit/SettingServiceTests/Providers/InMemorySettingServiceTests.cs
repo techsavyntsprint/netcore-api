@@ -1,7 +1,7 @@
 ﻿using APICore.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace APICore.Services.Tests.SettingServiceTests.Providers
+namespace APICore.Test.SettingServiceTests.Providers
 {
     public class InMemorySettingServiceTests : SettingServiceTests
     {

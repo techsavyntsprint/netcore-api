@@ -66,8 +66,7 @@ namespace APICore.API
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
 
             // Adding the Azure blob clients as singletons
-            services.AddSingleton<CloudBlobClient>(blobClient);
-
+            services.AddSingleton(blobClient);
             services.AddTransient<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddTransient<IAccountService, AccountService>();
