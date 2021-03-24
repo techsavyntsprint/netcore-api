@@ -121,9 +121,9 @@ namespace APICore.Data.Repository
             await _context.Set<T>().AddRangeAsync(t);
         }
 
-        public T FirstOrDefault(Expression<Func<T, bool>> predicate)
+        public async Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate)
         {
-            T query = _context.Set<T>().FirstOrDefault(predicate);
+            T query = await _context.Set<T>().FirstOrDefaultAsync(predicate);
             return query;
         }
     }

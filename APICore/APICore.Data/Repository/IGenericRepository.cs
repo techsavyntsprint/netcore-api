@@ -42,6 +42,6 @@ namespace APICore.Data.Repository
 
         void Update(T t);
 
-        T FirstOrDefault(Expression<Func<T, bool>> predicate);
+        Task<T> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate);
     }
 }

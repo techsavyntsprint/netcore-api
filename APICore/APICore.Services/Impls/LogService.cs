@@ -99,7 +99,7 @@ namespace APICore.Services.Impls
         public async Task<IQueryable<Log>> GetLogsByUserSerialAsync(int? page, int? perPage, string sortOrder, string serialUser, int logType = -1, int eventTypeLog = -1)
         {
             
-            var user = await _uow.UserRepository.FindBy(u => u.Identity == serialUser).FirstOrDefaultAsync();
+            var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Identity == serialUser);
                
             if (user == null)
                 {

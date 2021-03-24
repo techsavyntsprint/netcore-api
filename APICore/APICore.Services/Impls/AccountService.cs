@@ -50,7 +50,7 @@ namespace APICore.Services.Impls
         {
             var hashedPass = GetSha256Hash(loginRequest.Password);
 
-            var user = await _uow.UserRepository.FindBy(u => u.Email == loginRequest.Email).FirstOrDefaultAsync();
+            var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Email == loginRequest.Email);
 
             if (user == null)
             {
@@ -136,7 +136,7 @@ namespace APICore.Services.Impls
 
             if (userId > 0)
             {
-                var user = await _uow.UserRepository.FindBy(u => u.Id == userId).FirstOrDefaultAsync();
+                var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Id == userId);
 
                 // Check for wrong or not existant user
                 if (user == null)
@@ -190,7 +190,7 @@ namespace APICore.Services.Impls
 
             if (userId > 0 && !string.IsNullOrEmpty(token))
             {
-                var user = await _uow.UserRepository.FindBy(u => u.Id == userId).FirstOrDefaultAsync();
+                var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Id == userId);
 
                 // Check for wrong or not existant user
                 if (user == null)
@@ -320,8 +320,8 @@ namespace APICore.Services.Impls
         {
             var userId = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.UserData).Value;
 
-            var refToken = await _uow.UserTokenRepository.FindBy(u => u.UserId == int.Parse(userId) && u.AccessToken == refreshToken.Token)
-                .FirstOrDefaultAsync();
+            var refToken = await _uow.UserTokenRepository
+                .FirstOrDefaultAsync(u => u.UserId == int.Parse(userId) && u.AccessToken == refreshToken.Token);
             if (refToken == null)
             {
                 throw new RefreshTokenNotFoundException(_localizer);
@@ -380,7 +380,7 @@ namespace APICore.Services.Impls
                 throw new ArgumentNullException(nameof(claimsIdentity));
             }
             var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
-            var user = await _uow.UserRepository.FindBy(u => u.Id == userId).FirstOrDefaultAsync();
+            var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Id == userId);
             var passwordHash = GetSha256Hash(changePassword.OldPassword);
 
             if (passwordHash != user.Password)
@@ -444,7 +444,7 @@ namespace APICore.Services.Impls
 
             var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
 
-            var user = await _uow.UserRepository.FindBy(u => u.Id == userId).FirstOrDefaultAsync();
+            var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
             {
@@ -522,7 +522,7 @@ namespace APICore.Services.Impls
             var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
 
             // Check if the Master exist
-            var master = await _uow.UserRepository.FindBy(u => u.Id == userId).FirstOrDefaultAsync();
+            var master = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Id == userId);
 
             if (master == null)
             {
@@ -530,7 +530,7 @@ namespace APICore.Services.Impls
             }
 
             // Find the Inactive User
-            var user = await _uow.UserRepository.FindBy(u => u.Identity == changeAccountStatus.Identity).FirstOrDefaultAsync();
+            var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Identity == changeAccountStatus.Identity);
 
             if (user == null)
             {
@@ -568,7 +568,7 @@ namespace APICore.Services.Impls
 
             var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
 
-            var user = await _uow.UserRepository.FindBy(u => u.Id == userId).FirstOrDefaultAsync();
+            var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
             {
@@ -648,7 +648,7 @@ namespace APICore.Services.Impls
 
         public async Task<string> ForgotPasswordAsync(string email)
         {
-            var user = await _uow.UserRepository.FindBy(u => u.Email == email).FirstOrDefaultAsync();
+            var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
             {
                 throw new UserNotFoundException(_localizer);
