@@ -41,5 +41,7 @@ namespace APICore.Data.Repository
         Task UpdateAsync(T t, object key);
 
         void Update(T t);
+
+        T FirstOrDefault(Expression<Func<T, bool>> predicate);
     }
 }

@@ -6,34 +6,30 @@ using APICore.Data.UoW;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using System.Linq;
+using System.Threading.Tasks;
 
-namespace APICore.Test
+namespace APICore.Tests.Integration.Mocks
 {
-    class DBContext
+    class FakeDbContext
     {
-        private readonly Mock<IUnitOfWork> uowMock;
-        private readonly DbContextOptions<CoreDbContext> dbContextOptions;
-        private readonly CoreDbContext coreDbContext;
+        private Mock<IUnitOfWork> uowMock;
+        private DbContextOptions<CoreDbContext> dbContextOptions;
+        private CoreDbContext coreDbContext;
         private const string dbName = "mockedDB";
 
-        public DBContext()
+        public Mock<IUnitOfWork> MockRepository()
         {
             uowMock = new Mock<IUnitOfWork>();
 
             dbContextOptions = new DbContextOptionsBuilder<CoreDbContext>()
-                     .UseInMemoryDatabase(databaseName: dbName)
-                     .Options;
+                .UseInMemoryDatabase(databaseName: dbName)
+                .Options;
 
             coreDbContext = new CoreDbContext(dbContextOptions);
 
-            Seed();
-        }
-        private void Seed()
-        {
-            if(!coreDbContext.Users.Any())
+            if (!coreDbContext.Users.Any())
             {
-                // Active User
-                coreDbContext.Add(new User
+                coreDbContext.Users.AddRangeAsync(new User
                 {
                     Id = 1,
                     Email = "carlos@itguy.com",
@@ -42,9 +38,7 @@ namespace APICore.Test
                     Phone = "+53 12345678",
                     Password = @"gM3vIavHvte3fimrk2uVIIoAB//f2TmRuTy4IWwNWp0=",
                     Status = StatusEnum.ACTIVE
-                });
-                // Inactive User
-                coreDbContext.Add(new User
+                }, new User
                 {
                     Id = 2,
                     Email = "inactive@itguy.com",
@@ -55,29 +49,15 @@ namespace APICore.Test
                     Status = StatusEnum.INACTIVE,
                     Identity = "someRandomIdentityString"
                 });
-                // fake Token for Active User
-                coreDbContext.Add(new UserToken
-                {
-                    Id = 1,
-                    AccessToken = "s0m34cc$3$$T0k3n",
-                    UserId = 1
-                });
-                coreDbContext.Add(new UserToken
-                {
-                    Id = 2,
-                    AccessToken = "s0m34cc$3$$T0k3nTwo",
-                    UserId = 2
-                });
 
                 coreDbContext.SaveChanges();
             }
-        }
-        public Mock<IUnitOfWork> MockRepository()
-        {
+
             var fakeUserRepo = new GenericRepository<User>(coreDbContext);
             var fakeUserTokenRepo = new GenericRepository<UserToken>(coreDbContext);
             uowMock.Setup(repo => repo.UserRepository).Returns(fakeUserRepo);
             uowMock.Setup(repo => repo.UserTokenRepository).Returns(fakeUserTokenRepo);
+
             return uowMock;
         }
     }

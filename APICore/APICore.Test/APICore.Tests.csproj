@@ -23,4 +23,16 @@
     <ProjectReference Include="..\APICore.Services\APICore.Services.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="Integration\Mocks\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Integration\Mocks\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Integration\Mocks\**" />
+  </ItemGroup>
+
 </Project>
