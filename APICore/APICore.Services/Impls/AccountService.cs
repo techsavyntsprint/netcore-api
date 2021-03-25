@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
+using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -49,7 +50,7 @@ namespace APICore.Services.Impls
         {
             var hashedPass = GetSha256Hash(loginRequest.Password);
 
-            var user = await _uow.UserRepository.FindBy(u => u.Email == loginRequest.Email).FirstOrDefaultAsync();
+            var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Email == loginRequest.Email);
 
             if (user == null)
             {
@@ -103,11 +104,9 @@ namespace APICore.Services.Impls
         private string GetRefreshToken()
         {
             var randomNumber = new byte[32];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(randomNumber);
-                return Convert.ToBase64String(randomNumber);
-            }
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
         }
 
         private string GetToken(IEnumerable<Claim> claims)
@@ -126,23 +125,119 @@ namespace APICore.Services.Impls
             return new JwtSecurityTokenHandler().WriteToken(jwt); //the method is called WriteToken but returns a string
         }
 
-        public async Task LogoutAsync(int userIdValue, string accessToken)
+        public async Task GlobalLogoutAsync(ClaimsIdentity claimsIdentity)
         {
-            var tokens = await _uow.UserTokenRepository.FindByAsync(t => t.UserId == userIdValue && t.AccessToken == accessToken);
-
-            foreach (var item in tokens)
+            if (claimsIdentity == null)
             {
-                _uow.UserTokenRepository.Delete(item);
+                throw new ArgumentNullException(nameof(claimsIdentity));
             }
-            await _uow.CommitAsync();
+
+            var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
+
+            if (userId > 0)
+            {
+                var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Id == userId);
+
+                // Check for wrong or not existant user
+                if (user == null)
+                {
+                    throw new UserNotFoundException(_localizer);
+                }
+
+                // Check for inactive user
+                if (user.Status == StatusEnum.INACTIVE)
+                {
+                    throw new AccountInactiveForbiddenException(_localizer);
+                }
+
+                var tokens = await _uow.UserTokenRepository.FindByAsync(t => t.UserId == userId);
+
+                // Only do a commit when you actually delete something
+                if (tokens != null)
+                {
+                    if (tokens.Count > 0)
+                    {
+                        foreach (var item in tokens)
+                        {
+                            _uow.UserTokenRepository.Delete(item);
+                        }
+                        await _uow.CommitAsync();
+                    }
+                }
+            }
+            else
+            {
+                throw new UserNotFoundException(_localizer);
+            }
+
+        }
+
+        public async Task LogoutAsync(string accessToken, ClaimsIdentity claimsIdentity)
+        {
+            // Null or empty parameters check
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                throw new ArgumentNullException(nameof(accessToken));
+            }
+            if (claimsIdentity == null)
+            {
+                throw new ArgumentNullException(nameof(claimsIdentity));
+            }
+
+            var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
+
+            var token = accessToken.Split("Bearer")[1].Trim();
+
+            if (userId > 0 && !string.IsNullOrEmpty(token))
+            {
+                var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Id == userId);
+
+                // Check for wrong or not existant user
+                if (user == null)
+                {
+                    throw new UserNotFoundException(_localizer);
+                }
+
+                // Check for inactive user
+                if (user.Status == StatusEnum.INACTIVE)
+                {
+                    throw new AccountInactiveForbiddenException(_localizer);
+                }
+
+                var tokens = await _uow.UserTokenRepository.FindByAsync(t => t.UserId == userId && t.AccessToken == accessToken);
+
+                // Only do a commit when you actually delete something
+                if (tokens != null)
+                {
+                    if (tokens.Count > 0)
+                    {
+                        foreach (var item in tokens)
+                        {
+                            _uow.UserTokenRepository.Delete(item);
+                        }
+                        await _uow.CommitAsync();
+                    }
+                }
+            }
+            else
+            {
+                throw new UserNotFoundException(_localizer);
+            }
         }
 
         public async Task SignUpAsync(SignUpRequest suRequest)
         {
-            var emailExists = await _uow.UserRepository.FindAllAsync(u => u.Email == suRequest.Email);
-            if (emailExists.Count > 0)
+            if(suRequest.Email == "")
             {
-                throw new EmailInUseBadRequestException(_localizer);
+                throw new EmptyEmailBadRequestException(_localizer);
+            }
+            var emailExists = await _uow.UserRepository.FindAllAsync(u => u.Email == suRequest.Email);
+            if(emailExists != null)
+            {
+                if (emailExists.Count > 0)
+                {
+                    throw new EmailInUseBadRequestException(_localizer);
+                }
             }
 
             if (string.IsNullOrWhiteSpace(suRequest.Password) ||
@@ -221,10 +316,12 @@ namespace APICore.Services.Impls
             return Task.FromResult(principal);
         }
 
-        public async Task GetRefreshTokenAsync(RefreshTokenRequest refreshToken, string userId)
+        public async Task GetRefreshTokenAsync(RefreshTokenRequest refreshToken, ClaimsPrincipal principal)
         {
-            var refToken = await _uow.UserTokenRepository.FindBy(u => u.UserId == int.Parse(userId) && u.AccessToken == refreshToken.Token)
-                .FirstOrDefaultAsync();
+            var userId = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.UserData).Value;
+
+            var refToken = await _uow.UserTokenRepository
+                .FirstOrDefaultAsync(u => u.UserId == int.Parse(userId) && u.AccessToken == refreshToken.Token);
             if (refToken == null)
             {
                 throw new RefreshTokenNotFoundException(_localizer);
@@ -264,19 +361,26 @@ namespace APICore.Services.Impls
         private List<Claim> GetClaims(User user)
         {
             var issuer = _configuration.GetSection("BearerTokens")["Issuer"];
-            var claims = new List<Claim>();
-            claims.Add(new Claim(ClaimTypes.Email, user.Email, ClaimValueTypes.Email, issuer));
-            claims.Add(new Claim(ClaimTypes.AuthenticationMethod, "bearer", ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(ClaimTypes.NameIdentifier, user.FullName, ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(ClaimTypes.DateOfBirth, user.BirthDate.ToString(), ClaimValueTypes.Date, issuer));
-            claims.Add(new Claim(ClaimTypes.Gender, user.Gender.ToString(), ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(ClaimTypes.UserData, user.Id.ToString(), ClaimValueTypes.String, issuer));
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Email, user.Email, ClaimValueTypes.Email, issuer),
+                new Claim(ClaimTypes.AuthenticationMethod, "bearer", ClaimValueTypes.String, issuer),
+                new Claim(ClaimTypes.NameIdentifier, user.FullName, ClaimValueTypes.String, issuer),
+                new Claim(ClaimTypes.DateOfBirth, user.BirthDate.ToString(), ClaimValueTypes.Date, issuer),
+                new Claim(ClaimTypes.Gender, user.Gender.ToString(), ClaimValueTypes.String, issuer),
+                new Claim(ClaimTypes.UserData, user.Id.ToString(), ClaimValueTypes.String, issuer)
+            };
             return claims;
         }
 
-        public async Task ChangePasswordAsync(ChangePasswordRequest changePassword, int userId)
+        public async Task ChangePasswordAsync(ChangePasswordRequest changePassword, ClaimsIdentity claimsIdentity)
         {
-            var user = await _uow.UserRepository.FindBy(u => u.Id == userId).FirstOrDefaultAsync();
+            if (claimsIdentity == null)
+            {
+                throw new ArgumentNullException(nameof(claimsIdentity));
+            }
+            var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
+            var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Id == userId);
             var passwordHash = GetSha256Hash(changePassword.OldPassword);
 
             if (passwordHash != user.Password)
@@ -307,17 +411,6 @@ namespace APICore.Services.Impls
             await _uow.CommitAsync();
         }
 
-        public async Task GlobalLogoutAsync(int userId)
-        {
-            var tokens = await _uow.UserTokenRepository.FindByAsync(t => t.UserId == userId);
-
-            foreach (var item in tokens)
-            {
-                _uow.UserTokenRepository.Delete(item);
-            }
-            await _uow.CommitAsync();
-        }
-
         private DeviceDetector GetDeviceDetectorConfigured()
         {
             var ua = _detectionService.UserAgent;
@@ -342,9 +435,16 @@ namespace APICore.Services.Impls
             return dd;
         }
 
-        public async Task<User> UpdateProfileAsync(UpdateProfileRequest updateProfile, int userId)
+        public async Task<User> UpdateProfileAsync(UpdateProfileRequest updateProfile, ClaimsIdentity claimsIdentity)
         {
-            var user = await _uow.UserRepository.FindBy(u => u.Id == userId).FirstOrDefaultAsync();
+            if (claimsIdentity == null)
+            {
+                throw new ArgumentNullException(nameof(claimsIdentity));
+            }
+
+            var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
+
+            var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
             {
@@ -412,16 +512,33 @@ namespace APICore.Services.Impls
             return user;
         }
 
-        public async Task ChangeAccountStatusAsync(ChangeAccountStatusRequest changeAccountStatus, int userId)
+        public async Task ChangeAccountStatusAsync(ChangeAccountStatusRequest changeAccountStatus, ClaimsIdentity claimsIdentity)
         {
-            var user = await _uow.UserRepository.FindBy(u => u.Identity == changeAccountStatus.Identity).FirstOrDefaultAsync();
+            if (claimsIdentity == null)
+            {
+                throw new ArgumentNullException(nameof(claimsIdentity));
+            }
+
+            var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
+
+            // Check if the Master exist
+            var master = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (master == null)
+            {
+                throw new UserNotFoundException(_localizer);
+            }
+
+            // Find the Inactive User
+            var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Identity == changeAccountStatus.Identity);
 
             if (user == null)
             {
                 throw new UserNotFoundException(_localizer);
             }
 
-            if (user.Id == userId && changeAccountStatus.Active == false)
+            // You can't reActivate yourself
+            if (user.Id == userId && user.Status == StatusEnum.INACTIVE)
             {
                 throw new AccountDeactivatedForbiddenException(_localizer);
             }
@@ -442,9 +559,16 @@ namespace APICore.Services.Impls
             await _uow.CommitAsync();
         }
 
-        public async Task<User> UploadAvatar(IFormFile file, int userId)
+        public async Task<User> UploadAvatar(IFormFile file, ClaimsIdentity claimsIdentity)
         {
-            var user = await _uow.UserRepository.FindBy(u => u.Id == userId).FirstOrDefaultAsync();
+            if (claimsIdentity == null)
+            {
+                throw new ArgumentNullException(nameof(claimsIdentity));
+            }
+
+            var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
+
+            var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
             {
@@ -469,33 +593,31 @@ namespace APICore.Services.Impls
 
             using (Stream stream = file.OpenReadStream())
             {
-                using (var binaryReader = new BinaryReader(stream))
+                using var binaryReader = new BinaryReader(stream);
+                var fileContent = binaryReader.ReadBytes((int)file.Length);
+                var mime = file.ContentType;
+                if (!mime.Equals("image/png") && !mime.Equals("image/jpg") && !mime.Equals("image/jpeg"))
                 {
-                    var fileContent = binaryReader.ReadBytes((int)file.Length);
-                    var mime = file.ContentType;
-                    if (!mime.Equals("image/png") && !mime.Equals("image/jpg") && !mime.Equals("image/jpeg"))
-                    {
-                        throw new FileInvalidTypeBadRequestException(_localizer);
-                    }
-
-                    string guid = Guid.NewGuid().ToString();
-
-                    if (!string.IsNullOrWhiteSpace(user.Avatar))
-                    {
-                        //delete the old one in order to avoid client cache problems
-                        var segments = new Uri(user.Avatar).Segments;
-                        var oldGuid = segments[segments.Length - 1];
-                        await RemoveOldImageFromBlobStorage(imagesContainer, oldGuid);
-                    }
-
-                    //upload the new one and update user avatar's properties
-                    await UploadImageToBlobStorage(fileContent, imagesContainer, guid, mime);
-                    user.Avatar = string.Format("{0}/{1}", imagesRootPath, guid);
-                    user.AvatarMimeType = mime;
-
-                    await _uow.UserRepository.UpdateAsync(user, userId);
-                    await _uow.CommitAsync();
+                    throw new FileInvalidTypeBadRequestException(_localizer);
                 }
+
+                string guid = Guid.NewGuid().ToString();
+
+                if (!string.IsNullOrWhiteSpace(user.Avatar))
+                {
+                    //delete the old one in order to avoid client cache problems
+                    var segments = new Uri(user.Avatar).Segments;
+                    var oldGuid = segments[segments.Length - 1];
+                    await RemoveOldImageFromBlobStorage(imagesContainer, oldGuid);
+                }
+
+                //upload the new one and update user avatar's properties
+                await UploadImageToBlobStorage(fileContent, imagesContainer, guid, mime);
+                user.Avatar = string.Format("{0}/{1}", imagesRootPath, guid);
+                user.AvatarMimeType = mime;
+
+                await _uow.UserRepository.UpdateAsync(user, userId);
+                await _uow.CommitAsync();
             }
 
             return user;
@@ -526,7 +648,7 @@ namespace APICore.Services.Impls
 
         public async Task<string> ForgotPasswordAsync(string email)
         {
-            var user = await _uow.UserRepository.FindBy(u => u.Email == email).FirstOrDefaultAsync();
+            var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
             {
                 throw new UserNotFoundException(_localizer);

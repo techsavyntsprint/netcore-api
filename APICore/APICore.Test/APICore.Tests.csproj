@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="5.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
+    <PackageReference Include="Moq" Version="4.16.0" />
+    <PackageReference Include="xunit" Version="2.4.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\APICore.API\APICore.API.csproj" />
+    <ProjectReference Include="..\APICore.Common\APICore.Common.csproj" />
+    <ProjectReference Include="..\APICore.Data\APICore.Data.csproj" />
+    <ProjectReference Include="..\APICore.Services\APICore.Services.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Integration\Mocks\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Integration\Mocks\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Integration\Mocks\**" />
+  </ItemGroup>
+
+</Project>

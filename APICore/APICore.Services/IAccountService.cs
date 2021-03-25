@@ -12,27 +12,27 @@ namespace APICore.Services
 
         Task<(User user, string accessToken, string refreshToken)> LoginAsync(LoginRequest loginRequest);
 
-        Task LogoutAsync(int userIdValue, string accessToken);
+        Task LogoutAsync(string accessToken, ClaimsIdentity claimsIdentity);
 
         Task<ClaimsPrincipal> GetPrincipalFromExpiredTokenAsync(string token);
 
-        Task GetRefreshTokenAsync(RefreshTokenRequest refreshToken, string userId);
+        Task GetRefreshTokenAsync(RefreshTokenRequest refreshToken, ClaimsPrincipal principal);
 
         Task<(string accessToken, string refreshToken)> GenerateNewTokensAsync(string token, string refreshToken);
 
-        Task ChangePasswordAsync(ChangePasswordRequest changePassword, int userId);
+        Task ChangePasswordAsync(ChangePasswordRequest changePassword, ClaimsIdentity claimsIdentity);
 
-        Task GlobalLogoutAsync(int userId);
+        Task GlobalLogoutAsync(ClaimsIdentity claimsIdentity);
 
-        Task<User> UpdateProfileAsync(UpdateProfileRequest updateProfile, int userId);
+        Task<User> UpdateProfileAsync(UpdateProfileRequest updateProfile, ClaimsIdentity claimsIdentity);
 
         Task<bool> ValidateTokenAsync(string token);
 
         Task<User> GetUserAsync(int userId);
 
-        Task ChangeAccountStatusAsync(ChangeAccountStatusRequest changeAccountStatus, int userId);
+        Task ChangeAccountStatusAsync(ChangeAccountStatusRequest changeAccountStatus, ClaimsIdentity claimsIdentity);
 
-        Task<User> UploadAvatar(IFormFile file, int currentUser);
+        Task<User> UploadAvatar(IFormFile file, ClaimsIdentity claimsIdentity);
 
         Task<string> ForgotPasswordAsync(string email);
     }

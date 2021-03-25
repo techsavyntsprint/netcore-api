@@ -23,8 +23,8 @@ namespace APICore.Services.Impls
 
         public async Task<string> GetSettingAsync(string settingKey)
         {
-            var setting = await _uow.SettingRepository.FindBy(s => s.Key == settingKey)
-                                    .FirstOrDefaultAsync();
+            var setting = await _uow.SettingRepository
+                                    .FirstOrDefaultAsync(s => s.Key == settingKey);
             if (setting == null)
             {
                 throw new SettingNotFoundException(_localizer);
@@ -35,8 +35,8 @@ namespace APICore.Services.Impls
 
         public async Task<Setting> SetSettingAsync(SettingRequest settingRequest)
         {
-            var result = await _uow.SettingRepository.FindBy(s => s.Key == settingRequest.Key)
-                                   .FirstOrDefaultAsync();
+            var result = await _uow.SettingRepository
+                                   .FirstOrDefaultAsync(s => s.Key == settingRequest.Key);
 
             if (result != null)
             {

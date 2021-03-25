@@ -77,6 +77,13 @@
       "es-ES": "Token de actualización no válido"
     }
   },
+  {
+    "Key": "400011",
+    "LocalizedValue": {
+      "en-US": "User Email can't be Empty",
+      "es-ES": "El Email de usuario no puede estar vacío"
+    }
+  },
   //Unauthorized
   {
     "Key": "401",
