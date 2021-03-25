@@ -12,7 +12,7 @@ using Microsoft.Extensions.Localization;
 using Moq;
 using Xunit;
 
-namespace APICore.Test.SettingServiceTests
+namespace APICore.Test.Unit.SettingServiceTests
 {
     public abstract class SettingServiceTests
     {
