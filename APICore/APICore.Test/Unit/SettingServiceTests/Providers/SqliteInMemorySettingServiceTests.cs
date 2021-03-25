@@ -5,7 +5,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
-namespace APICore.Test.SettingServiceTests.Providers
+namespace APICore.Test.Unit.SettingServiceTests.Providers
 {
     public class SqliteInMemorySettingServiceTests : SettingServiceTests, IDisposable
     {
