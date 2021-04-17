@@ -23,6 +23,10 @@ namespace APICore.Services.Impls
 
         public async Task<string> GetSettingAsync(string settingKey)
         {
+            if (string.IsNullOrEmpty(settingKey))
+            {
+                throw new ArgumentNullException(nameof(settingKey));
+            }
             var setting = await _uow.SettingRepository
                                     .FirstOrDefaultAsync(s => s.Key == settingKey);
             if (setting == null)
@@ -35,6 +39,11 @@ namespace APICore.Services.Impls
 
         public async Task<Setting> SetSettingAsync(SettingRequest settingRequest)
         {
+            if (settingRequest == null)
+            {
+                throw new ArgumentNullException(nameof(settingRequest));
+            }
+
             var result = await _uow.SettingRepository
                                    .FirstOrDefaultAsync(s => s.Key == settingRequest.Key);
 

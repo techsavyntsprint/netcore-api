@@ -55,44 +55,44 @@ namespace APICore.Tests.Integration.Account
         {
             await using var context = new CoreDbContext(ContextOptions);
 
-            await context.Database.EnsureDeletedAsync();
-            await context.Database.EnsureCreatedAsync();
+            if (await context.Users.AnyAsync() == false)
+            {
+                await context.Users.AddRangeAsync(new User
+                {
+                    Id = 4,
+                    Email = "pepe@itguy.com",
+                    FullName = "Pepe Delgado",
+                    Gender = 0,
+                    Phone = "+53 12345678",
+                    Password = @"gM3vIavHvte3fimrk2uVIIoAB//f2TmRuTy4IWwNWp0=",
+                    Status = StatusEnum.ACTIVE,
+                    Identity = "someRandomIdentityString"
+                }, new User
+                {
+                    Id = 5,
+                    Email = "inactive@itguy.com",
+                    FullName = "Out Delgado",
+                    Gender = 0,
+                    Phone = "+53 12345678",
+                    Password = @"gM3vIavHvte3fimrk2uVIIoAB//f2TmRuTy4IWwNWp0=",
+                    Status = StatusEnum.INACTIVE,
+                    Identity = "someRandomIdentityString"
+                });
 
-            await context.Users.AddRangeAsync(new User
-            {
-                Id = 4,
-                Email = "pepe@itguy.com",
-                FullName = "Pepe Delgado",
-                Gender = 0,
-                Phone = "+53 12345678",
-                Password = @"gM3vIavHvte3fimrk2uVIIoAB//f2TmRuTy4IWwNWp0=",
-                Status = StatusEnum.ACTIVE,
-                Identity = "someRandomIdentityString"
-            }, new User
-            {
-                Id = 5,
-                Email = "inactive@itguy.com",
-                FullName = "Out Delgado",
-                Gender = 0,
-                Phone = "+53 12345678",
-                Password = @"gM3vIavHvte3fimrk2uVIIoAB//f2TmRuTy4IWwNWp0=",
-                Status = StatusEnum.INACTIVE,
-                Identity = "someRandomIdentityString"
-            });
+                await context.AddRangeAsync(new UserToken
+                {
+                    Id = 1,
+                    AccessToken = "s0m34cc$3$$T0k3n",
+                    UserId = 4
+                }, new UserToken
+                {
+                    Id = 2,
+                    AccessToken = "s0m34cc$3$$T0k3n",
+                    UserId = 5
+                });
 
-            await context.AddRangeAsync(new UserToken
-            {
-                Id = 1,
-                AccessToken = "s0m34cc$3$$T0k3n",
-                UserId = 4
-            }, new UserToken
-            {
-                Id = 2,
-                AccessToken = "s0m34cc$3$$T0k3n",
-                UserId = 5
-            });
-            
-            await context.SaveChangesAsync();
+                await context.SaveChangesAsync();
+            }
         }
 
         [Fact(DisplayName = "Successfully Change Account Status Should Return Ok(200)")]

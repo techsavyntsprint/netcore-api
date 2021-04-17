@@ -5,19 +5,17 @@ using System.Threading.Tasks;
 
 namespace APICore.Data.UoW
 {
-    public class UnitOfWork : IUnitOfWork
+    public class UnitOfWork : IUnitOfWork, IDisposable
     {
         private readonly CoreDbContext _context;
-
-        private bool disposed = false;
 
         public UnitOfWork(CoreDbContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            UserRepository = UserRepository ?? new GenericRepository<User>(_context);
-            UserTokenRepository = UserTokenRepository ?? new GenericRepository<UserToken>(_context);
-            SettingRepository = SettingRepository ?? new GenericRepository<Setting>(_context);
-            LogRepository = LogRepository ?? new GenericRepository<Log>(_context);
+            UserRepository ??= new GenericRepository<User>(_context);
+            UserTokenRepository ??= new GenericRepository<UserToken>(_context);
+            SettingRepository ??= new GenericRepository<Setting>(_context);
+            LogRepository ??= new GenericRepository<Log>(_context);
         }
 
         public IGenericRepository<User> UserRepository { get; set; }
@@ -32,20 +30,8 @@ namespace APICore.Data.UoW
 
         public void Dispose()
         {
-            Dispose(true);
+            _context.Dispose();
             GC.SuppressFinalize(this);
-        }
-
-        protected void Dispose(bool disposing)
-        {
-            if (!this.disposed)
-            {
-                if (disposing)
-                {
-                    _context.Dispose();
-                }
-                this.disposed = true;
-            }
         }
     }
 }

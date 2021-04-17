@@ -38,21 +38,21 @@ namespace APICore.Tests.Integration.Account
         {
             await using var context = new CoreDbContext(ContextOptions);
 
-            await context.Database.EnsureDeletedAsync();
-            await context.Database.EnsureCreatedAsync();
-
-            await context.Users.AddAsync(new User
+            if (await context.Users.AnyAsync() == false)
             {
-                Id = 3,
-                Email = "pepe@itguy.com",
-                FullName = "Pepe Delgado",
-                Gender = 0,
-                Phone = "+53 12345678",
-                Password = @"gM3vIavHvte3fimrk2uVIIoAB//f2TmRuTy4IWwNWp0=",
-                Status = StatusEnum.ACTIVE
-            });
+                await context.Users.AddAsync(new User
+                {
+                    Id = 3,
+                    Email = "pepe@itguy.com",
+                    FullName = "Pepe Delgado",
+                    Gender = 0,
+                    Phone = "+53 12345678",
+                    Password = @"gM3vIavHvte3fimrk2uVIIoAB//f2TmRuTy4IWwNWp0=",
+                    Status = StatusEnum.ACTIVE
+                });
 
-            await context.SaveChangesAsync();
+                await context.SaveChangesAsync();
+            }
         }
 
         [Fact(DisplayName = "Successfully Register Should Return Created Status Code (201)")]
