@@ -64,7 +64,7 @@ namespace APICore.API
             // Adding the Azure blob clients as singletons
             services.AddTransient<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-            services.AddScoped(x => new BlobServiceClient(Environment.GetEnvironmentVariable("azure")));
+            services.AddScoped(x => new BlobServiceClient(Environment.GetEnvironmentVariable("Azure")));
             services.AddTransient<IAccountService, AccountService>();
             services.AddTransient<ISettingService, SettingService>();
             services.AddTransient<IEmailService, EmailService>();
