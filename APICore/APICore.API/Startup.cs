@@ -4,6 +4,7 @@ using APICore.Data.Repository;
 using APICore.Data.UoW;
 using APICore.Services;
 using APICore.Services.Impls;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
@@ -15,10 +16,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Serilog;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -61,18 +61,15 @@ namespace APICore.API
             services.AddHttpContextAccessor();
             services.AddAutoMapper(typeof(Startup));
 
-            // Creating the blob clients
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(Configuration.GetConnectionString("Azure"));
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-
             // Adding the Azure blob clients as singletons
-            services.AddSingleton(blobClient);
             services.AddTransient<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            services.AddScoped(x => new BlobServiceClient(Configuration.GetConnectionString("Azure")));
             services.AddTransient<IAccountService, AccountService>();
             services.AddTransient<ISettingService, SettingService>();
             services.AddTransient<IEmailService, EmailService>();
             services.AddTransient<ILogService, LogService>();
+            services.AddTransient<IStorageService, StorageService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

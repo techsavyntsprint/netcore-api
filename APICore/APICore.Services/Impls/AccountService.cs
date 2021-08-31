@@ -11,7 +11,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.WindowsAzure.Storage.Blob;
 using rlcx.suid;
 using System;
 using System.Collections.Generic;
@@ -35,15 +34,17 @@ namespace APICore.Services.Impls
 
         private readonly IStringLocalizer<IAccountService> _localizer;
         private readonly IDetectionService _detectionService;
-        private readonly CloudBlobClient _blobClient;
+        private readonly IStorageService _storageService;
 
-        public AccountService(IConfiguration configuration, IUnitOfWork uow, IStringLocalizer<IAccountService> localizer, IDetectionService detectionService, CloudBlobClient blobClient)
+        public AccountService(IConfiguration configuration, IUnitOfWork uow,
+            IStringLocalizer<IAccountService> localizer,
+            IDetectionService detectionService, IStorageService storageService)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _uow = uow ?? throw new ArgumentNullException(nameof(uow));
             _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
             _detectionService = detectionService ?? throw new ArgumentNullException(nameof(detectionService));
-            _blobClient = blobClient ?? throw new ArgumentNullException(nameof(blobClient));
+            _storageService = storageService ?? throw new ArgumentNullException(nameof(storageService));
         }
 
         public async Task<(User user, string accessToken, string refreshToken)> LoginAsync(LoginRequest loginRequest)
@@ -169,7 +170,6 @@ namespace APICore.Services.Impls
             {
                 throw new UserNotFoundException(_localizer);
             }
-
         }
 
         public async Task LogoutAsync(string accessToken, ClaimsIdentity claimsIdentity)
@@ -227,12 +227,12 @@ namespace APICore.Services.Impls
 
         public async Task SignUpAsync(SignUpRequest suRequest)
         {
-            if(suRequest.Email == "")
+            if (suRequest.Email == "")
             {
                 throw new EmptyEmailBadRequestException(_localizer);
             }
             var emailExists = await _uow.UserRepository.FindAllAsync(u => u.Email == suRequest.Email);
-            if(emailExists != null)
+            if (emailExists != null)
             {
                 if (emailExists.Count > 0)
                 {
@@ -588,62 +588,34 @@ namespace APICore.Services.Impls
             {
                 throw new FileInvalidSizeBadRequestException(_localizer);
             }
-            var imagesRootPath = _configuration.GetSection("Blobs")["ImagesRootPath"];
+            //var imagesRootPath = _configuration.GetSection("Blobs")["ImagesRootPath"];
             var imagesContainer = _configuration.GetSection("Blobs")["ImagesContainer"];
 
-            using (Stream stream = file.OpenReadStream())
+            var mime = file.ContentType;
+            if (!mime.Equals("image/png") && !mime.Equals("image/jpg") && !mime.Equals("image/jpeg"))
             {
-                using var binaryReader = new BinaryReader(stream);
-                var fileContent = binaryReader.ReadBytes((int)file.Length);
-                var mime = file.ContentType;
-                if (!mime.Equals("image/png") && !mime.Equals("image/jpg") && !mime.Equals("image/jpeg"))
-                {
-                    throw new FileInvalidTypeBadRequestException(_localizer);
-                }
-
-                string guid = Guid.NewGuid().ToString();
-
-                if (!string.IsNullOrWhiteSpace(user.Avatar))
-                {
-                    //delete the old one in order to avoid client cache problems
-                    var segments = new Uri(user.Avatar).Segments;
-                    var oldGuid = segments[segments.Length - 1];
-                    await RemoveOldImageFromBlobStorage(imagesContainer, oldGuid);
-                }
-
-                //upload the new one and update user avatar's properties
-                await UploadImageToBlobStorage(fileContent, imagesContainer, guid, mime);
-                user.Avatar = string.Format("{0}/{1}", imagesRootPath, guid);
-                user.AvatarMimeType = mime;
-
-                await _uow.UserRepository.UpdateAsync(user, userId);
-                await _uow.CommitAsync();
+                throw new FileInvalidTypeBadRequestException(_localizer);
             }
 
+            string guid = Guid.NewGuid().ToString();
+
+            if (!string.IsNullOrWhiteSpace(user.Avatar))
+            {
+                //delete the old one in order to avoid client cache problems
+                var oldGuid = user.Avatar;
+                await _storageService.DeleteFileBlobAsync(imagesContainer, oldGuid);
+            }
+
+            var result = await _storageService.UploadFileBlobAsync(imagesContainer, file.OpenReadStream(),
+                    mime, guid);
+
+            user.Avatar = guid;
+            user.AvatarMimeType = mime;
+
+            await _uow.UserRepository.UpdateAsync(user, userId);
+            await _uow.CommitAsync();
+
             return user;
-        }
-
-        private async Task<string> UploadImageToBlobStorage(byte[] content, string imagesContainer, string fileId, string contentType)
-        {
-            // get a reference to our container
-            var container = _blobClient.GetContainerReference(imagesContainer);
-
-            // using the container reference, get a block blob reference and set its type
-            CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileId);
-            blockBlob.Properties.ContentType = contentType;
-
-            await blockBlob.UploadFromByteArrayAsync(content, 0, content.Length);
-
-            return "";
-        }
-
-        private async Task RemoveOldImageFromBlobStorage(string imagesContainer, string fileId)
-        {
-            var container = _blobClient.GetContainerReference(imagesContainer);
-
-            CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileId);
-
-            await blockBlob.DeleteIfExistsAsync();
         }
 
         public async Task<string> ForgotPasswordAsync(string email)
