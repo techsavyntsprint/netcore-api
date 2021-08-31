@@ -7,13 +7,13 @@ using APICore.Data.UoW;
 using APICore.Services;
 using APICore.Services.Exceptions;
 using APICore.Services.Impls;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
-using Microsoft.WindowsAzure.Storage;
 using Moq;
 using System.Threading.Tasks;
 using Wangkanai.Detection.Models;
@@ -27,7 +27,7 @@ namespace APICore.Tests.Integration.Account
         private DbContextOptions<CoreDbContext> ContextOptions { get; }
         private readonly Mock<IConfiguration> Config;
         private readonly Mock<IDetectionService> DetectionService;
-        private readonly CloudStorageAccount StorageAccount;
+        private readonly IStorageService storageService;
 
         public LoginAction()
         {
@@ -44,10 +44,11 @@ namespace APICore.Tests.Integration.Account
             DetectionService = new Mock<IDetectionService>();
             DetectionService.Setup(setup => setup.UserAgent).Returns(new UserAgent(@"Mozilla / 5.0(Windows NT 10.0; Win64; x64; rv: 86.0) Gecko / 20100101 Firefox / 86.0"));
 
-            StorageAccount = CloudStorageAccount.Parse(@"DefaultEndpointsProtocol=https;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1/apicore;");
+            storageService = new Mock<IStorageService>().Object;
 
             SeedAsync().Wait();
         }
+
         private async Task SeedAsync()
         {
             await using var context = new CoreDbContext(ContextOptions);
@@ -82,7 +83,7 @@ namespace APICore.Tests.Integration.Account
             var httpContext = new DefaultHttpContext();
             using var context = new CoreDbContext(ContextOptions);
 
-            var accountService = new AccountService(Config.Object, new UnitOfWork(context), new Mock<IStringLocalizer<IAccountService>>().Object, DetectionService.Object, StorageAccount.CreateCloudBlobClient());
+            var accountService = new AccountService(Config.Object, new UnitOfWork(context), new Mock<IStringLocalizer<IAccountService>>().Object, DetectionService.Object, storageService);
             var accountController = new AccountController(accountService, new Mock<AutoMapper.IMapper>().Object, new Mock<IEmailService>().Object, new Mock<IWebHostEnvironment>().Object)
             {
                 ControllerContext = new ControllerContext()
@@ -97,6 +98,7 @@ namespace APICore.Tests.Integration.Account
             // ASSERT
             Assert.Equal(200, taskResult.StatusCode);
         }
+
         [Fact(DisplayName = "Empty Email On Login Should Return Not Found Exception")]
         public void EmptyEmailOnLoginShouldReturnBadRequestException()
         {
@@ -110,7 +112,7 @@ namespace APICore.Tests.Integration.Account
             var httpContext = new DefaultHttpContext();
             using var context = new CoreDbContext(ContextOptions);
 
-            var accountService = new AccountService(Config.Object, new UnitOfWork(context), new Mock<IStringLocalizer<IAccountService>>().Object, DetectionService.Object, StorageAccount.CreateCloudBlobClient());
+            var accountService = new AccountService(Config.Object, new UnitOfWork(context), new Mock<IStringLocalizer<IAccountService>>().Object, DetectionService.Object, storageService);
             var accountController = new AccountController(accountService, new Mock<AutoMapper.IMapper>().Object, new Mock<IEmailService>().Object, new Mock<IWebHostEnvironment>().Object)
             {
                 ControllerContext = new ControllerContext()
@@ -140,7 +142,7 @@ namespace APICore.Tests.Integration.Account
             var httpContext = new DefaultHttpContext();
             using var context = new CoreDbContext(ContextOptions);
 
-            var accountService = new AccountService(Config.Object, new UnitOfWork(context), new Mock<IStringLocalizer<IAccountService>>().Object, DetectionService.Object, StorageAccount.CreateCloudBlobClient());
+            var accountService = new AccountService(Config.Object, new UnitOfWork(context), new Mock<IStringLocalizer<IAccountService>>().Object, DetectionService.Object, storageService);
             var accountController = new AccountController(accountService, new Mock<AutoMapper.IMapper>().Object, new Mock<IEmailService>().Object, new Mock<IWebHostEnvironment>().Object)
             {
                 ControllerContext = new ControllerContext()
