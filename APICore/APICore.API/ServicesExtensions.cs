@@ -10,7 +10,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using System;
 using System.Globalization;
 using System.IO;
@@ -30,9 +29,8 @@ namespace APICore.API
                         // Replace with your connection string.
                         config.GetConnectionString("ApiConnection"),
                         // Replace with your server version and type.
-                        new MySqlServerVersion(new Version(8, 0, 21)), // use MariaDbServerVersion for MariaDB
-                        mySqlOptions => mySqlOptions
-                            .CharSetBehavior(CharSetBehavior.NeverAppend))
+                        new MySqlServerVersion(new Version(8, 0, 21)) // use MariaDbServerVersion for MariaDB
+                     )
                     .EnableSensitiveDataLogging()
                     .EnableDetailedErrors()
             );

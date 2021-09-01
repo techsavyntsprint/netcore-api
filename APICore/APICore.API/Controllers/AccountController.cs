@@ -63,7 +63,7 @@ namespace APICore.API.Controllers
         [ProducesResponseType(typeof(UserResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.Unauthorized)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> Login([FromBody]  LoginRequest loginRequest)
+        public async Task<IActionResult> Login([FromBody] LoginRequest loginRequest)
         {
             var result = await _accountService.LoginAsync(loginRequest);
             HttpContext.Response.Headers["Authorization"] = "Bearer " + result.accessToken;
@@ -81,7 +81,8 @@ namespace APICore.API.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> Logout()
         {
-            await _accountService.LogoutAsync(Request.Headers["Authorization"], User.Identity as ClaimsIdentity);
+            var loggedUser = User.GetUserIdFromToken();
+            await _accountService.LogoutAsync(Request.Headers["Authorization"], loggedUser);
             return Ok();
         }
 
@@ -95,7 +96,8 @@ namespace APICore.API.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> GlobalLogout()
         {
-            await _accountService.GlobalLogoutAsync(User.Identity as ClaimsIdentity);
+            var loggedUser = User.GetUserIdFromToken();
+            await _accountService.GlobalLogoutAsync(loggedUser);
             return Ok();
         }
 
@@ -111,8 +113,11 @@ namespace APICore.API.Controllers
         public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest refreshToken)
         {
             var principal = await _accountService.GetPrincipalFromExpiredTokenAsync(refreshToken.Token);
-            await _accountService.GetRefreshTokenAsync(refreshToken, principal);
+            var loggedUser = principal.GetUserIdFromToken();
+
+            await _accountService.GetRefreshTokenAsync(refreshToken, loggedUser);
             var result = await _accountService.GenerateNewTokensAsync(refreshToken.Token, refreshToken.RefreshToken);
+
             HttpContext.Response.Headers["Authorization"] = "Bearer " + result.accessToken;
             HttpContext.Response.Headers["RefreshToken"] = result.refreshToken;
             HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "Authorization, RefreshToken";
@@ -131,7 +136,8 @@ namespace APICore.API.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest changePassword)
         {
-            await _accountService.ChangePasswordAsync(changePassword, User.Identity as ClaimsIdentity);
+            var loggedUser = User.GetUserIdFromToken();
+            await _accountService.ChangePasswordAsync(changePassword, loggedUser);
             return Ok();
         }
 
@@ -146,7 +152,8 @@ namespace APICore.API.Controllers
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest updateProfile)
         {
-            var result = await _accountService.UpdateProfileAsync(updateProfile, User.Identity as ClaimsIdentity);
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _accountService.UpdateProfileAsync(updateProfile, loggedUser);
             var user = _mapper.Map<UserResponse>(result);
 
             return Ok(new ApiOkResponse(user));
@@ -191,7 +198,8 @@ namespace APICore.API.Controllers
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> ChangeAccountStatus([FromBody] ChangeAccountStatusRequest changeAccountStatus)
         {
-            await _accountService.ChangeAccountStatusAsync(changeAccountStatus, User.Identity as ClaimsIdentity);
+            var loggedUser = User.GetUserIdFromToken();
+            await _accountService.ChangeAccountStatusAsync(changeAccountStatus, loggedUser);
             return Ok();
         }
 
@@ -206,7 +214,8 @@ namespace APICore.API.Controllers
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         public async Task<IActionResult> UploadAvatar(IFormFile file)
         {
-            var result = await _accountService.UploadAvatar(file, User.Identity as ClaimsIdentity);
+            var loggedUser = User.GetUserIdFromToken();
+            var result = await _accountService.UploadAvatar(file, loggedUser);
             var user = _mapper.Map<UserResponse>(result);
             return Ok(new ApiOkResponse(user));
         }
@@ -219,7 +228,7 @@ namespace APICore.API.Controllers
         [AllowAnonymous]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ApiResponse), (int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> ForgotPassword([FromQuery]string email)
+        public async Task<IActionResult> ForgotPassword([FromQuery] string email)
         {
             var newPass = await _accountService.ForgotPasswordAsync(email);
 

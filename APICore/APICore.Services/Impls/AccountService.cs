@@ -126,15 +126,8 @@ namespace APICore.Services.Impls
             return new JwtSecurityTokenHandler().WriteToken(jwt); //the method is called WriteToken but returns a string
         }
 
-        public async Task GlobalLogoutAsync(ClaimsIdentity claimsIdentity)
+        public async Task GlobalLogoutAsync(int userId)
         {
-            if (claimsIdentity == null)
-            {
-                throw new ArgumentNullException(nameof(claimsIdentity));
-            }
-
-            var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
-
             if (userId > 0)
             {
                 var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Id == userId);
@@ -172,19 +165,13 @@ namespace APICore.Services.Impls
             }
         }
 
-        public async Task LogoutAsync(string accessToken, ClaimsIdentity claimsIdentity)
+        public async Task LogoutAsync(string accessToken, int userId)
         {
             // Null or empty parameters check
             if (string.IsNullOrEmpty(accessToken))
             {
                 throw new ArgumentNullException(nameof(accessToken));
             }
-            if (claimsIdentity == null)
-            {
-                throw new ArgumentNullException(nameof(claimsIdentity));
-            }
-
-            var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
 
             var token = accessToken.Split("Bearer")[1].Trim();
 
@@ -316,12 +303,10 @@ namespace APICore.Services.Impls
             return Task.FromResult(principal);
         }
 
-        public async Task GetRefreshTokenAsync(RefreshTokenRequest refreshToken, ClaimsPrincipal principal)
+        public async Task GetRefreshTokenAsync(RefreshTokenRequest refreshToken, int userId)
         {
-            var userId = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.UserData).Value;
-
             var refToken = await _uow.UserTokenRepository
-                .FirstOrDefaultAsync(u => u.UserId == int.Parse(userId) && u.AccessToken == refreshToken.Token);
+                .FirstOrDefaultAsync(u => u.UserId == userId && u.AccessToken == refreshToken.Token);
             if (refToken == null)
             {
                 throw new RefreshTokenNotFoundException(_localizer);
@@ -373,13 +358,8 @@ namespace APICore.Services.Impls
             return claims;
         }
 
-        public async Task ChangePasswordAsync(ChangePasswordRequest changePassword, ClaimsIdentity claimsIdentity)
+        public async Task ChangePasswordAsync(ChangePasswordRequest changePassword, int userId)
         {
-            if (claimsIdentity == null)
-            {
-                throw new ArgumentNullException(nameof(claimsIdentity));
-            }
-            var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
             var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Id == userId);
             var passwordHash = GetSha256Hash(changePassword.OldPassword);
 
@@ -435,15 +415,8 @@ namespace APICore.Services.Impls
             return dd;
         }
 
-        public async Task<User> UpdateProfileAsync(UpdateProfileRequest updateProfile, ClaimsIdentity claimsIdentity)
+        public async Task<User> UpdateProfileAsync(UpdateProfileRequest updateProfile, int userId)
         {
-            if (claimsIdentity == null)
-            {
-                throw new ArgumentNullException(nameof(claimsIdentity));
-            }
-
-            var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
-
             var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
@@ -512,15 +485,8 @@ namespace APICore.Services.Impls
             return user;
         }
 
-        public async Task ChangeAccountStatusAsync(ChangeAccountStatusRequest changeAccountStatus, ClaimsIdentity claimsIdentity)
+        public async Task ChangeAccountStatusAsync(ChangeAccountStatusRequest changeAccountStatus, int userId)
         {
-            if (claimsIdentity == null)
-            {
-                throw new ArgumentNullException(nameof(claimsIdentity));
-            }
-
-            var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
-
             // Check if the Master exist
             var master = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Id == userId);
 
@@ -559,15 +525,8 @@ namespace APICore.Services.Impls
             await _uow.CommitAsync();
         }
 
-        public async Task<User> UploadAvatar(IFormFile file, ClaimsIdentity claimsIdentity)
+        public async Task<User> UploadAvatar(IFormFile file, int userId)
         {
-            if (claimsIdentity == null)
-            {
-                throw new ArgumentNullException(nameof(claimsIdentity));
-            }
-
-            var userId = Convert.ToInt32(claimsIdentity.FindFirst(ClaimTypes.UserData)?.Value);
-
             var user = await _uow.UserRepository.FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
