@@ -28,8 +28,9 @@ namespace APICore.API
                     .UseMySql(
                         // Replace with your connection string.
                         config.GetConnectionString("ApiConnection"),
-                        // Replace with your server version and type.
-                        new MySqlServerVersion(new Version(8, 0, 21)) // use MariaDbServerVersion for MariaDB
+                        // Replace with your server version and type. Use MariaDbServerVersion for MariaDB.
+                        new MySqlServerVersion(new Version(8, 0, 21))
+                     //Consider to use a specific charset according with your needs in your modelbuilder inside your context
                      )
                     .EnableSensitiveDataLogging()
                     .EnableDetailedErrors()
