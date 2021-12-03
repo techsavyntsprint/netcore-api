@@ -1,5 +1,6 @@
 using APICore.API.Filters;
 using APICore.API.Middlewares;
+using APICore.API.Utils;
 using APICore.Data.Repository;
 using APICore.Data.UoW;
 using APICore.Services;
@@ -73,7 +74,7 @@ namespace APICore.API
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider services)
         {
             app.UseDetection();
             app.UseCors();
@@ -134,6 +135,8 @@ namespace APICore.API
 
                 endpoints.MapControllers();
             });
+
+            DatabaseSeed.SeedDatabaseAsync(services).Wait();
         }
     }
 }
