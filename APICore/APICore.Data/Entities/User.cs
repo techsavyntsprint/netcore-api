@@ -4,14 +4,13 @@ using System.Collections.Generic;
 
 namespace APICore.Data.Entities
 {
-    public class User
+    public class User : BaseEntity
     {
         public User()
         {
             UserTokens = new HashSet<UserToken>();
         }
 
-        public int Id { get; set; }
         public string Identity { get; set; }
         public DateTime BirthDate { get; set; }
         public string FullName { get; set; }
@@ -20,8 +19,6 @@ namespace APICore.Data.Entities
         public string Phone { get; set; }
         public string Password { get; set; }
         public StatusEnum Status { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime ModifiedAt { get; set; }
         public DateTimeOffset? LastLoggedIn { get; set; }
         public string Avatar { get; set; }
         public string AvatarMimeType { get; set; }

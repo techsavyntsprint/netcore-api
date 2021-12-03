@@ -15,6 +15,5 @@ namespace APICore.Data.Entities
         public string Description { get; set; }
         public string App { get; set; }
         public string Module { get; set; }
- 
     }
 }
