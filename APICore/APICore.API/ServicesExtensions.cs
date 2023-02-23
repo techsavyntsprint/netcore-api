@@ -126,7 +126,9 @@ namespace APICore.API
                    builder.SetIsOriginAllowed(_ => true)
                        .AllowAnyMethod()
                        .AllowAnyHeader()
-                       .AllowCredentials());
+                       .AllowCredentials()
+                       .WithExposedHeaders(new string[] { "X-Pagination", "Authorization", "RefreshToken" })
+                       );
            });
         }
 

@@ -68,7 +68,6 @@ namespace APICore.API.Controllers
             var result = await _accountService.LoginAsync(loginRequest);
             HttpContext.Response.Headers["Authorization"] = "Bearer " + result.accessToken;
             HttpContext.Response.Headers["RefreshToken"] = result.refreshToken;
-            HttpContext.Response.Headers["Access-Control-Expose-Headers"] = "Authorization, RefreshToken";
             var user = _mapper.Map<UserResponse>(result.user);
             return Ok(new ApiOkResponse(user));
         }
