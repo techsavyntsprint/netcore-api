@@ -1,4 +1,4 @@
-# NET Core 5 API
+# NET 7 API
 
 [![Continuous Integration](https://github.com/techsavyntsprint/netcore-api/workflows/CI/badge.svg)](https://github.com/techsavyntsprint/netcore-api/actions)
 
@@ -50,7 +50,7 @@ Is important to note, in the case of Azure, we can use developer tools instead o
 ```
 
 # Database
-As per requisite you must have installed .Net Core 3 and EF Core Command Line tools (https://docs.microsoft.com/en-us/ef/core/miscellaneous/cli/dotnet).
+As per requisite you must have installed .Net 7 and EF 7 Command Line tools (https://docs.microsoft.com/en-us/ef/core/miscellaneous/cli/dotnet).
 
 We are using the .net migrations system to update the database.
 
