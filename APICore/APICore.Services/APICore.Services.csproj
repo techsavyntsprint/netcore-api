@@ -1,20 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.15.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.19.0" />
     <PackageReference Include="DeviceDetector.NET" Version="4.3.2" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />
     <PackageReference Include="Askmethat.Aspnet.JsonLocalizer" Version="4.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.9" />
     <PackageReference Include="rlcx.suid" Version="1.0.1" />
     <PackageReference Include="Sendgrid" Version="9.28.1" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.27.0" />
-    <PackageReference Include="Wangkanai.Detection" Version="7.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
+    <PackageReference Include="Wangkanai.Detection" Version="8.20.0" />
   </ItemGroup>
 
   <ItemGroup>

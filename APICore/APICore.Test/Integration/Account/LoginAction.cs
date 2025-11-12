@@ -7,7 +7,6 @@ using APICore.Data.UoW;
 using APICore.Services;
 using APICore.Services.Exceptions;
 using APICore.Services.Impls;
-using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -80,11 +79,29 @@ namespace APICore.Tests.Integration.Account
                 Password = "S3cretP@$$"
             };
 
+            // Configurar el mock con una clave válida (mínimo 32 caracteres)
+            Config.Setup(x => x.GetSection("BearerTokens")["Key"])
+                .Returns("ThisIsAVerySecureSecretKeyWith32CharactersOrMore!");
+            Config.Setup(x => x.GetSection("BearerTokens")["Issuer"])
+                .Returns("YourIssuer");
+            Config.Setup(x => x.GetSection("BearerTokens")["Audience"])
+                .Returns("YourAudience");
+
             var httpContext = new DefaultHttpContext();
             using var context = new CoreDbContext(ContextOptions);
+            var accountService = new AccountService(
+                Config.Object,
+                new UnitOfWork(context),
+                new Mock<IStringLocalizer<IAccountService>>().Object,
+                DetectionService.Object,
+                storageService
+            );
 
-            var accountService = new AccountService(Config.Object, new UnitOfWork(context), new Mock<IStringLocalizer<IAccountService>>().Object, DetectionService.Object, storageService);
-            var accountController = new AccountController(accountService, new Mock<AutoMapper.IMapper>().Object, new Mock<IEmailService>().Object, new Mock<IWebHostEnvironment>().Object)
+            var accountController = new AccountController(
+                accountService,
+                new Mock<AutoMapper.IMapper>().Object,
+                new Mock<IEmailService>().Object,
+                new Mock<IWebHostEnvironment>().Object)
             {
                 ControllerContext = new ControllerContext()
                 {

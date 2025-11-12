@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using APICore.Common.DTO.Request;
 using APICore.Data.Entities;
@@ -9,8 +7,6 @@ using APICore.Data.Entities.Enums;
 using APICore.Data.UoW;
 using APICore.Services.Exceptions;
 using APICore.Services.Utils;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace APICore.Services.Impls

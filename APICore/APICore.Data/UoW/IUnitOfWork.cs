@@ -1,6 +1,5 @@
 ﻿using APICore.Data.Entities;
 using APICore.Data.Repository;
-using System;
 using System.Threading.Tasks;
 
 namespace APICore.Data.UoW
