@@ -60,7 +60,10 @@ namespace APICore.API
             services.ConfigureDetection();
 
             services.AddHttpContextAccessor();
-            services.AddAutoMapper(typeof(Startup));
+            services.AddAutoMapper(cfg =>
+            {
+                cfg.AllowNullCollections = true;
+            }, typeof(Startup).Assembly);
 
             // Adding the Azure blob clients as singletons
             services.AddTransient<IUnitOfWork, UnitOfWork>();

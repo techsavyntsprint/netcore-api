@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Globalization;
@@ -41,7 +42,6 @@ namespace APICore.API
         {
             services.AddSwaggerGen(options =>
             {
-                // define swagger docs and other options
                 options.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Title = "API Core",
@@ -54,7 +54,7 @@ namespace APICore.API
                     Description = "Enter JWT Bearer authorization token",
                     In = ParameterLocation.Header,
                     Type = SecuritySchemeType.Http,
-                    Scheme = "bearer", // must be lowercase!!!
+                    Scheme = "bearer",
                     BearerFormat = "Bearer {token}",
                     Reference = new OpenApiReference
                     {
@@ -65,7 +65,6 @@ namespace APICore.API
                 options.AddSecurityDefinition(JwtBearerDefaults.AuthenticationScheme, securityScheme);
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement
                     {
-                        // defines scope - without a protocol use an empty array for global scope
                         { securityScheme, Array.Empty<string>() }
                     }
                 );
@@ -188,7 +187,6 @@ namespace APICore.API
         public static void ConfigureDetection(this IServiceCollection services)
         {
             services.AddDetection();
-            // Needed by Wangkanai Detection
             services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromSeconds(10);

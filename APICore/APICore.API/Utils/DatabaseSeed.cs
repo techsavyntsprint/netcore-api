@@ -4,8 +4,6 @@ using APICore.Data.UoW;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,7 +25,7 @@ namespace APICore.API.Utils
 
             if (admin == null)
             {
-                using (var hashAlgorithm = new SHA256CryptoServiceProvider())
+                using (var hashAlgorithm = SHA256.Create())
                 {
                     var byteValue = Encoding.UTF8.GetBytes("P@sssw0rd");
                     var byteHash = hashAlgorithm.ComputeHash(byteValue);

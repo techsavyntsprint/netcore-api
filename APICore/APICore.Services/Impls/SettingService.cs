@@ -4,7 +4,6 @@ using APICore.Common.DTO.Request;
 using APICore.Data.Entities;
 using APICore.Data.UoW;
 using APICore.Services.Exceptions;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace APICore.Services.Impls
